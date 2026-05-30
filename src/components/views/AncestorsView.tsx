@@ -67,7 +67,7 @@ function FanChart({ rootPerson, individuals, families, generations, onSelect, im
 
   const size = 720;
   const cx = size / 2;
-  const cy = size - 40;
+  const cy = size / 2;
   const baseRadius = 60;
   const ringWidth = (size / 2 - baseRadius - 20) / generations;
 
@@ -88,7 +88,7 @@ function FanChart({ rootPerson, individuals, families, generations, onSelect, im
 
   return (
     <div className="w-full overflow-auto -mx-1">
-      <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-3xl mx-auto block" style={{ minWidth: 320 }}>
+      <svg viewBox={`0 0 ${size} ${cy + 20}`} className="w-full max-w-3xl mx-auto block" style={{ minWidth: 320 }}>
         {arcs.map((arc, i) => {
           const isFilled = !!arc.node;
           const sex = arc.sosa === 1 ? 'self' : arc.sosa % 2 === 0 ? 'M' : 'F';

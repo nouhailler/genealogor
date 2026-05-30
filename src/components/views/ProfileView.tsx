@@ -5,6 +5,7 @@ import { isInPeriod, fromGregorian, format as formatRep, formatYear } from '@/li
 import { shouldMask } from '@/lib/privacy';
 import BusinessCard from '@/components/views/BusinessCard';
 import PresentationMode from '@/components/views/PresentationMode';
+import BiographyPanel from '@/components/views/BiographyPanel';
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -381,6 +382,9 @@ export default function ProfileView({ person, individuals, families, onSelect }:
             <AncestorTree person={person} individuals={individuals} families={families} onSelect={onSelect} />
           </div>
         </section>
+
+        {/* AI biography */}
+        <BiographyPanel person={person} individuals={individuals} families={families} />
 
         {/* Personal timeline */}
         <PersonalTimeline person={person} families={families} individuals={individuals} />
