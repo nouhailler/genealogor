@@ -26,6 +26,14 @@ import AiLabView from '@/components/views/AiLabView';
 import MediaGallery from '@/components/views/MediaGallery';
 import SettingsPanel from '@/components/views/SettingsPanel';
 
+const STORAGE_KEYS = {
+  DATASETS:    'genealogor.savedDatasets',
+  SELECTED_ID: 'genealogor.selectedId',
+  ACTIVE_TAB:  'genealogor.activeTab',
+} as const;
+
+interface SavedDataset { fileName: string; prefix: string; text: string; }
+
 const TABS: { id: TabId; label: string }[] = [
   { id: 'profile',     label: 'Profil'       },
   { id: 'ancestors',   label: 'Ascendants'   },
@@ -79,6 +87,9 @@ export default function App() {
     try { localStorage.setItem('genealogor.theme', theme); } catch { /* ignore */ }
   }, [theme]);
 
+  const [restoring, setRestoring] = useState(() => {
+    try { return !!localStorage.getItem(STORAGE_KEYS.DATASETS); } catch { return false; }
+  });
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [parsing, setParsing] = useState(false);
   const [parseErrors, setParseErrors] = useState<string[]>([]);
@@ -86,13 +97,65 @@ export default function App() {
   const merged = useMemo(() => mergeDatasets(datasets), [datasets]);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<TabId>('profile');
+  const [activeTab, setActiveTab] = useState<TabId>(() => {
+    try { return (localStorage.getItem(STORAGE_KEYS.ACTIVE_TAB) as TabId) || 'profile'; } catch { return 'profile'; }
+  });
   const [query, setQuery] = useState('');
   const [useFullText, setUseFullText] = useState(false);
 
   const navStack = useRef<string[]>([]);
   const navIdx = useRef(-1);
   const [, setNavTick] = useState(0);
+
+  // Restore session from localStorage on first mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.DATASETS);
+      if (!raw) { setRestoring(false); return; }
+      const saved: SavedDataset[] = JSON.parse(raw);
+      const newDatasets: Dataset[] = saved.map(({ fileName, prefix, text }) => {
+        const isGed = /\.(ged|gedcom)$/i.test(fileName);
+        const data = isGed ? parseGedcom(text) : importCSV(text);
+        return { ...data, fileName, prefix, rawText: text };
+      });
+      setDatasets(newDatasets);
+      const m = mergeDatasets(newDatasets);
+      const savedId = localStorage.getItem(STORAGE_KEYS.SELECTED_ID);
+      const idToRestore = savedId && m.individuals.has(savedId)
+        ? savedId
+        : Array.from(m.individuals.keys())[0] ?? null;
+      if (idToRestore) {
+        setSelectedId(idToRestore);
+        navStack.current = [idToRestore];
+        navIdx.current = 0;
+      }
+    } catch { /* ignore corrupted data */ }
+    setRestoring(false);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persist datasets whenever they change
+  useEffect(() => {
+    if (restoring) return;
+    try {
+      if (datasets.length === 0) { localStorage.removeItem(STORAGE_KEYS.DATASETS); return; }
+      const toSave: SavedDataset[] = datasets
+        .filter(d => d.rawText)
+        .map(d => ({ fileName: d.fileName, prefix: d.prefix, text: d.rawText! }));
+      if (toSave.length > 0) localStorage.setItem(STORAGE_KEYS.DATASETS, JSON.stringify(toSave));
+    } catch { /* quota exceeded — skip */ }
+  }, [datasets, restoring]);
+
+  // Persist selected person
+  useEffect(() => {
+    if (restoring || !selectedId) return;
+    try { localStorage.setItem(STORAGE_KEYS.SELECTED_ID, selectedId); } catch {}
+  }, [selectedId, restoring]);
+
+  // Persist active tab
+  useEffect(() => {
+    if (restoring) return;
+    try { localStorage.setItem(STORAGE_KEYS.ACTIVE_TAB, activeTab); } catch {}
+  }, [activeTab, restoring]);
 
   const navigateTo = useCallback((id: string) => {
     if (!id) return;
@@ -168,7 +231,7 @@ export default function App() {
       const isGed = /\.(ged|gedcom)$/i.test(file.name);
       const data = isGed ? parseGedcom(text) : importCSV(text);
       const prefix = file.name.replace(/\.(ged|gedcom|csv)$/i, '').slice(0, 3).toUpperCase();
-      newDatasets.push({ ...data, fileName: file.name, prefix });
+      newDatasets.push({ ...data, fileName: file.name, prefix, rawText: text });
       if (data.errors.length > 0) {
         setParseErrors((prev) => [...prev, ...data.errors.map((e: { message: string }) => `${file.name}: ${e.message}`)]);
       }
@@ -186,7 +249,7 @@ export default function App() {
     try {
       const { SAMPLE_GED } = await import('@/lib/sample-ged');
       const data = parseGedcom(SAMPLE_GED);
-      setDatasets([{ ...data, fileName: 'sample.ged', prefix: 'SAM' }]);
+      setDatasets([{ ...data, fileName: 'sample.ged', prefix: 'SAM', rawText: SAMPLE_GED }]);
       const firstId = Array.from(data.individuals.keys())[0];
       if (firstId) navigateTo(firstId);
     } catch {
@@ -222,10 +285,10 @@ export default function App() {
           <h1 className="text-2xl font-semibold text-[var(--ink)] tracking-tight">Genealogor</h1>
           <p className="text-sm text-[var(--ink-muted)] mt-1">Visualiseur GEDCOM offline-first</p>
         </header>
-        {parsing ? (
+        {(parsing || restoring) ? (
           <div className="text-[var(--ink-muted)] text-sm flex items-center gap-2">
             <span className="inline-block size-4 border-2 border-[var(--accent)] border-t-transparent rounded-full" style={{ animation: 'spin 0.8s linear infinite' }} />
-            Chargement…
+            {restoring ? 'Restauration…' : 'Chargement…'}
           </div>
         ) : (
           <UploadZone onFiles={loadFiles} onLoadSample={loadSample} />
@@ -392,7 +455,10 @@ export default function App() {
             onTheme={() => setTheme(theme === 'light' ? 'dark' : 'light')}
             onOpenSettings={() => setShowSettings(true)}
             onOpenHelp={() => setShowHelp(true)}
-            onReset={() => { setDatasets([]); setSelectedId(null); setMobilePane('list'); }}
+            onReset={() => {
+              setDatasets([]); setSelectedId(null); setMobilePane('list');
+              try { localStorage.removeItem(STORAGE_KEYS.DATASETS); localStorage.removeItem(STORAGE_KEYS.SELECTED_ID); } catch {}
+            }}
             onAddFiles={() => mobileFileRef.current?.click()}
             onSelectPerson={(id) => { navigateTo(id); setMobilePane('profile'); }}
           />

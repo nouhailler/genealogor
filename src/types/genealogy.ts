@@ -78,6 +78,8 @@ export interface Dataset extends GenealogyData {
   fileName: string;
   /** 2-3 char prefix used to namespace IDs when merging multiple files */
   prefix: string;
+  /** Raw file text, kept for localStorage persistence across sessions */
+  rawText?: string;
 }
 
 /** State encoded in the URL for stable permalinks.
