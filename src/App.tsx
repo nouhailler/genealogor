@@ -5,6 +5,7 @@ import { importCSV } from '@/lib/csv-importer';
 import { usePrivacy, shouldMask } from '@/lib/privacy';
 import { search as ftSearch } from '@/lib/fulltext-search';
 import { Icon } from '@/components/ui-kit';
+import AdvancedSearch, { type SearchFilter, EMPTY_FILTER, applyAdvancedFilter, exportCSV, exportGEDCOM } from '@/components/AdvancedSearch';
 import UploadZone from '@/components/UploadZone';
 import HelpPanel from '@/components/HelpPanel';
 import { MobileBottomNav, MobileMoreSheet } from '@/components/mobile/MobileShell';
@@ -68,6 +69,7 @@ export default function App() {
   const [showHelp, setShowHelp] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [showOnboarding, doneOnboarding] = useOnboarding();
+  const [advFilter, setAdvFilter] = useState<SearchFilter>(EMPTY_FILTER);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     try { return (localStorage.getItem('genealogor.theme') as 'light' | 'dark') || 'light'; } catch { return 'light'; }
@@ -195,16 +197,20 @@ export default function App() {
 
   const filteredIndividuals = useMemo(() => {
     const all = Array.from(merged.individuals.values());
-    if (!query.trim()) return all;
-    if (useFullText) {
-      return ftSearch(query, merged.individuals).map((r: { person: Individual }) => r.person).filter(Boolean) as Individual[];
+    let base: Individual[];
+    if (!query.trim()) {
+      base = all;
+    } else if (useFullText) {
+      base = ftSearch(query, merged.individuals).map((r: { person: Individual }) => r.person).filter(Boolean) as Individual[];
+    } else {
+      const q = query.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+      base = all.filter((p) => {
+        const name = p.name.display.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        return name.includes(q);
+      });
     }
-    const q = query.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-    return all.filter((p) => {
-      const name = p.name.display.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-      return name.includes(q);
-    });
-  }, [merged.individuals, query, useFullText]);
+    return applyAdvancedFilter(base, '', advFilter);
+  }, [merged.individuals, query, useFullText, advFilter]);
 
   const selectedPerson = selectedId ? merged.individuals.get(selectedId) ?? null : null;
 
@@ -292,7 +298,18 @@ export default function App() {
           <div className="px-3 py-1.5 text-[11px] text-[var(--ink-faint)] font-mono border-b border-[var(--border)] flex items-center gap-2">
             <span>{filteredIndividuals.length} individu{filteredIndividuals.length !== 1 ? 's' : ''}</span>
             {query && <span className="truncate">· «{query}»</span>}
+            {datasets.length > 0 && (
+              <div className="ml-auto flex items-center gap-1">
+                <button onClick={() => exportCSV(merged.individuals)} className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-[var(--border)] text-[var(--ink-faint)] hover:text-[var(--ink)] hover:bg-[var(--surface-hover)]" title="Exporter CSV">CSV</button>
+                <button onClick={() => exportGEDCOM(merged.individuals, merged.families)} className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-[var(--border)] text-[var(--ink-faint)] hover:text-[var(--ink)] hover:bg-[var(--surface-hover)]" title="Exporter GEDCOM">GED</button>
+              </div>
+            )}
           </div>
+          {datasets.length > 0 && (
+            <div className="px-3 pb-1 border-b border-[var(--border)]">
+              <AdvancedSearch value={advFilter} onChange={setAdvFilter} />
+            </div>
+          )}
           <div className="flex-1 overflow-y-auto">
             {filteredIndividuals.map((p) => {
               const masked = isPrivate(p);

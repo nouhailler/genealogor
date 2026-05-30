@@ -3,6 +3,8 @@ import type { Individual, Family, GDate } from '@/types/genealogy';
 import { Icon, formatVital, sexLabel, sexColor } from '@/components/ui-kit';
 import { isInPeriod, fromGregorian, format as formatRep, formatYear } from '@/lib/republican-calendar';
 import { shouldMask } from '@/lib/privacy';
+import BusinessCard from '@/components/views/BusinessCard';
+import PresentationMode from '@/components/views/PresentationMode';
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -198,6 +200,8 @@ interface Props {
 
 export default function ProfileView({ person, individuals, families, onSelect }: Props) {
   const [factCounts, setFactCounts] = useState<Record<string, number>>({});
+  const [showCard, setShowCard]           = useState(false);
+  const [showPresentation, setShowPresentation] = useState(false);
 
   useEffect(() => {
     setFactCounts({});
@@ -266,8 +270,40 @@ export default function ProfileView({ person, individuals, families, onSelect }:
               {formatVital(person)}
             </div>
           </div>
+          {/* Action buttons */}
+          <div className="flex items-center gap-1 shrink-0">
+            <button onClick={() => setShowPresentation(true)}
+              className="h-8 px-2 rounded text-[var(--ink-faint)] hover:text-[var(--ink)] hover:bg-[var(--surface-hover)] text-xs font-mono"
+              title="Mode présentation (plein écran)">
+              ⛶
+            </button>
+            <button onClick={() => setShowCard(true)}
+              className="h-8 px-2 rounded text-[var(--ink-faint)] hover:text-[var(--ink)] hover:bg-[var(--surface-hover)] text-xs font-mono"
+              title="Fiche imprimable A4">
+              <Icon.FileText className="size-4" />
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Modals */}
+      {showCard && (
+        <BusinessCard
+          person={person}
+          individuals={individuals}
+          families={families}
+          onClose={() => setShowCard(false)}
+        />
+      )}
+      {showPresentation && (
+        <PresentationMode
+          person={person}
+          individuals={individuals}
+          families={families}
+          onClose={() => setShowPresentation(false)}
+          onChangePerson={(id) => { setShowPresentation(false); onSelect?.(id); }}
+        />
+      )}
 
       {/* Scrollable body */}
       <div className="flex-1 overflow-y-auto mobile-pb-safe">
