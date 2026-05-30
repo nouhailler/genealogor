@@ -1,0 +1,85 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Commands
+
+```bash
+npm run dev        # start Vite dev server (HMR)
+npm run build      # tsc -b && vite build → dist/
+npm run lint       # ESLint (TypeScript + react-hooks + react-refresh)
+npm run preview    # serve the dist/ build locally
+```
+
+No test runner is configured yet. Playwright is installed (`playwright`) but has no test files.
+
+## Architecture
+
+### Global state — `src/App.tsx`
+
+All application state lives in `App.tsx` via `useState`/`useMemo`/`useRef`. There is no Zustand store in use yet (the package is installed but the `src/store/` directory is empty). Key state:
+
+- `datasets: Dataset[]` — raw parsed files; merged on the fly by `mergeDatasets()` into a single `GenealogyData`
+- `selectedId / activeTab` — which person and which tab is displayed
+- `navStack / navIdx` refs — manual back/forward history (no router library)
+- `privacy` — from `usePrivacy()` in `src/lib/privacy.ts`; `shouldMask()` blurs living persons
+
+### Routing
+
+No React Router. Tab navigation is plain `useState<TabId>`. `ViewRouter` (bottom of `App.tsx`) maps `TabId → view component`. Mobile layout uses an additional `mobilePane: 'list' | 'profile'` state to switch between the person list and the detail panel.
+
+### `src/types/genealogy.ts`
+
+Single source of truth for all TypeScript types: `Individual`, `Family`, `GDate`, `GEvent`, `GenealogyData`, `Dataset`, `TabId`, `ViewProps`, `AppSettings`, `AdvancedFilter`, `ValidationError`, `StatsAggregates`, `GeocodedPlace`, `DuplicateCandidate`, etc. Read this file first when working on a new view.
+
+### `src/lib/` — pure business logic
+
+Framework-free TypeScript modules. All re-exported from `src/lib/index.ts`. Notable modules:
+
+| Module | Main export |
+|---|---|
+| `gedcom-parser.ts` | `parse(text)` → `GenealogyData` |
+| `gedcom-serializer.ts` | `serialize` / `download` / GEDCOM 7 variants |
+| `csv-importer.ts` | `importCSV(text)` → `GenealogyData` |
+| `fulltext-search.ts` | `search(query, individuals)` via MiniSearch |
+| `implex.ts` | `Implex.compute` — Sosa implexe coefficient |
+| `descendance.ts` | `Descendance.computeAboville` — Aboville numbering |
+| `republican-calendar.ts` | French Republican calendar conversion |
+| `place-gazetteer.ts` | 101 INSEE département codes |
+| `archives-templates.ts` | 97 departmental archive URLs |
+| `privacy.ts` | `usePrivacy()`, `shouldMask()` |
+| `attachment-store.ts` | IndexedDB attachment storage |
+
+### `src/components/views/` — one file per tab
+
+Each view receives props derived from `ViewProps` (`person`, `individuals`, `families`, `onNavigate`, `isPrivate`). Views receiving only the full dataset (not a selected person) omit `person`.
+
+Special views: `AncestorsView` hosts `FanChart`, `PedigreeChart` (`PedigreeChart.tsx`), and `HourglassView` (`HourglassView.tsx`). `ForceGraphView` uses d3-force. `GeoMapView` uses react-leaflet.
+
+### `src/components/mobile/`
+
+- `MobileShell.tsx` — `MobileBottomNav` + `MobileMoreSheet` (bottom sheet with secondary tabs)
+- `MobileOnboarding.tsx` — first-launch flow + PWA install banner
+
+### Design system
+
+Tokens are in `src/styles/tokens.css` as CSS custom properties on `:root[data-theme="light|dark"]` (oklch colors). Theme is switched by setting `data-theme` on `<html>`. Always use `var(--token)` syntax — never hardcode colors. Key tokens: `--bg`, `--surface`, `--surface-hover`, `--border`, `--ink`, `--ink-muted`, `--ink-faint`, `--accent`, `--accent-soft`, `--sex-m`, `--sex-f`, `--danger`, `--warn`, `--success`.
+
+Tailwind v4 is used via the `@tailwindcss/vite` plugin (no `tailwind.config.*` file). Touch targets on mobile must be ≥ 44px (`h-11`).
+
+### Path alias
+
+`@` maps to `src/`. Always use `@/…` imports, never relative paths from deep nesting.
+
+### Multiple dataset support
+
+Users can load several GEDCOM/CSV files simultaneously. `mergeDatasets()` in `App.tsx` merges them into one `GenealogyData`. Each `Dataset` carries a 3-char `prefix` to namespace IDs.
+
+### Numbering conventions
+
+- **Sosa-Stradonitz**: root = 1, father = 2n, mother = 2n+1, generation = `floor(log2(sosa))`
+- **Aboville**: descendants coded as `"1.2.3"` — see `Descendance.computeAboville`
+
+### Prototype reference
+
+`prototype/Genealogor.html` is the high-fidelity design reference. It runs React + Babel in-browser and is **not** a deployable build. When a UI behaviour is unclear, consult the prototype. Do not delete or modify it.
