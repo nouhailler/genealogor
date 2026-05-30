@@ -1,4 +1,4 @@
-# CONTEXT.md — Genealogor : migration prototype → production
+# CONTEXT.md — Genealogor
 
 ## Ce que fait l'application
 
@@ -14,161 +14,152 @@ Cible : généalogistes francophones (calendrier républicain, départements INS
 
 ---
 
-## État actuel : prototype HTML + React in-browser (Babel)
+## État actuel : application de production (migration terminée)
 
-Le dossier `prototype/` contient un prototype haute-fidélité fonctionnel. Il n'est **pas** destiné
-à la production : React et Babel tournent dans le navigateur, les modules s'attachent à `window.*`,
-Tailwind est chargé via CDN. Tout le design (couleurs, typo, espacements, interactions) est
-**définitif** — le reproduire fidèlement est la priorité.
+La migration prototype → production est **complète**. L'application tourne sur Vite + React 19 +
+TypeScript. Le dossier `prototype/` est conservé uniquement comme **référence visuelle** — ne pas
+le modifier ni le supprimer.
 
-Point d'entrée du prototype : `prototype/Genealogor.html`
+### Stack en production
 
----
-
-## Stack cible : Vite + React 18 + TypeScript
-
-| Aspect | Prototype | Cible |
-|---|---|---|
-| Build | Aucun (in-browser Babel) | Vite 5 |
-| Langage | JS + JSX Babel | TypeScript 5 + TSX |
-| Styles | Tailwind CDN + variables CSS | Tailwind v4 (PostCSS) + même tokens CSS |
-| Modules | Globaux `window.*` | ES modules (`import`/`export`) |
-| State | useState/useMemo monolithique | idem, ou Zustand si besoin |
-| Persistance | localStorage + IndexedDB | idem |
-| Cartes | Leaflet CDN | react-leaflet (npm) |
-| Graphe | d3 CDN | d3 (npm) |
-| PWA | sw.js manuel | vite-plugin-pwa (Workbox) |
-| Recherche | MiniSearch CDN | minisearch (npm) |
-| ZIP export | JSZip CDN | jszip (npm) |
+| Aspect | Choix |
+|---|---|
+| Build | Vite 8 |
+| UI | React 19 + TypeScript 6 |
+| Styles | Tailwind v4 (plugin Vite) + variables CSS `oklch` dans `src/styles/tokens.css` |
+| State | `useState`/`useMemo` dans `App.tsx` (Zustand installé, non utilisé) |
+| Persistance session | `localStorage` (datasets raw text + selectedId + activeTab) |
+| Persistance médias | IndexedDB via `AttachmentStore` |
+| Carte | react-leaflet + tuiles OpenStreetMap |
+| Graphe | d3-force (npm) |
+| Recherche | MiniSearch (npm) |
+| PWA | vite-plugin-pwa (Workbox) |
+| Export | jszip (npm) |
 
 ---
 
-## Architecture des fichiers du prototype
-
-### Logique métier `.js` — portables directement (remplacer `window.X=` par `export`)
+## Architecture source
 
 ```
-gedcom-parser.js       → GedcomParser.parse(text) → {individuals, families, errors}
-gedcom-serializer.js   → GedcomSerializer.{serialize,download,serialize7,download7}
-csv-importer.js        → CsvImporter
-fulltext-search.js     → FullTextSearch.search
-implex.js              → Implex.compute, Implex.isImplexedFor
-descendance.js         → Descendance.computeAboville
-historical-events.js   → HistoricalEvents
-republican-calendar.js → RepublicanCalendar
-place-gazetteer.js     → PlaceGazetteer (101 départements INSEE)
-archives-templates.js  → ArchivesTemplates.linksFor (97 URLs archives + portails)
-privacy.js             → Privacy, usePrivacy
-family-book.js         → FamilyBook.generate (PDF HTML imprimable)
-attachment-store.js    → AttachmentStore (IndexedDB)
-sample.ged.js          → SAMPLE_GED (données d'exemple)
-```
-
-### UI `.jsx` — à réimplémenter en composants React modulaires
-
-```
-app.jsx                → App (shell principal, state global, routing)
-ui-kit.jsx             → Icon, formatVital, sexLabel…
-auth-gate.jsx          → AuthGate (auth optionnelle multi-utilisateur)
-upload-zone.jsx        → UploadZone (drag-drop .ged/.csv)
-profile-view.jsx       → ProfileView, RepublicanBadge, ShortBioCaption, FactSourceBadge
-ancestors-view.jsx     → AncestorsView, FanChart
-pedigree-chart.jsx     → PedigreeChart (7 générations)
-hourglass-chart.jsx    → HourglassView (Sosa + Aboville)
-descendants-view.jsx   → DescendantsView (arbre repliable)
-implex-view.jsx        → ImplexView
-compare-view.jsx       → CompareView (2 fiches)
-force-graph.jsx        → ForceGraphView (d3-force)
-timeline-view.jsx      → TimelineView (frise par décennie)
-places-view.jsx        → PlacesView (nuage de lieux)
-geomap-view.jsx        → GeoMapView (Leaflet : Points/Migrations/Heatmap/Patronymes)
-stats-view.jsx         → StatsView
-age-pyramid.jsx        → AgePyramid
-validation-view.jsx    → ValidationView, runValidation
-ai-features.jsx        → AiLabView, AiFeatures (lab IA)
-advanced-features.jsx  → AdvancedSearch, export CSV/print
-settings-panel.jsx     → SettingsPanel, AiCall, AiCallMultimodal (couche LLM)
-bio-ai.jsx             → BioAi (récit biographique long)
-attachments-section.jsx→ AttachmentsSection
-attachment-detail.jsx  → AttachmentDetail (modale + OCR + citation par fait)
-media-store.jsx        → MediaGallery
-merge-modal.jsx        → GenealogorMerge (fusion doublons)
-business-card.jsx      → BusinessCard (fiche imprimable A4)
-presentation-mode.jsx  → PresentationMode (plein écran)
-help-panel.jsx         → HelpPanel
-mobile-shell.jsx       → MobileBottomNav, MobileMoreSheet, useIsMobile
-mobile-ui-kit.jsx      → MUI.* (Sheet, Segmented, PullToRefresh, Skeleton, haptic…)
-mobile-onboarding.jsx  → MobileOnboarding, PWA install banner, sharePerson
-history.jsx            → DEPRECATED — intégré dans app.jsx, à supprimer
+src/
+├── App.tsx                    # Shell : état global, routing par onglets, session localStorage
+├── main.tsx                   # Point d'entrée React
+├── types/genealogy.ts         # Tous les types TypeScript (source de vérité unique)
+├── styles/tokens.css          # Variables CSS oklch (light/dark via data-theme sur <html>)
+├── lib/                       # Logique métier pure (sans React), re-exportée via index.ts
+│   ├── gedcom-parser.ts       # parse(text) → GenealogyData
+│   ├── gedcom-serializer.ts   # serialize / download (GEDCOM 5.5.1 + 7.0)
+│   ├── csv-importer.ts        # importCSV(text) → GenealogyData
+│   ├── fulltext-search.ts     # search(query, individuals) via MiniSearch
+│   ├── implex.ts              # Implex.compute — implexe / endogamie par génération
+│   ├── descendance.ts         # Descendance.computeAboville
+│   ├── republican-calendar.ts # Conversion grégorien ↔ républicain (1792-1805)
+│   ├── place-gazetteer.ts     # 101 départements INSEE
+│   ├── archives-templates.ts  # 97 URLs archives départementales + portails
+│   ├── privacy.ts             # usePrivacy(), shouldMask()
+│   ├── family-book.ts         # FamilyBook.generate (PDF HTML imprimable)
+│   ├── attachment-store.ts    # AttachmentStore (IndexedDB)
+│   ├── ai-features.ts         # AiFeatures (NL query, Wikipedia, bio, lieux…)
+│   └── sample-ged.ts          # SAMPLE_GED (données d'exemple)
+├── components/
+│   ├── views/                 # 13 vues — une par TabId
+│   │   ├── ProfileView.tsx
+│   │   ├── AncestorsView.tsx  # + PedigreeChart.tsx + HourglassView.tsx
+│   │   ├── DescendantsView.tsx
+│   │   ├── ImplexView.tsx
+│   │   ├── CompareView.tsx
+│   │   ├── ForceGraphView.tsx
+│   │   ├── TimelineView.tsx
+│   │   ├── PlacesView.tsx
+│   │   ├── GeoMapView.tsx
+│   │   ├── MediaGallery.tsx
+│   │   ├── StatsView.tsx      # inclut AgePyramid
+│   │   ├── ValidationView.tsx
+│   │   ├── AiLabView.tsx
+│   │   ├── SettingsPanel.tsx  # couche LLM (AiCall / AiCallMultimodal)
+│   │   ├── BiographyPanel.tsx
+│   │   ├── BusinessCard.tsx
+│   │   ├── PresentationMode.tsx
+│   │   └── MergeModal.tsx
+│   ├── mobile/
+│   │   ├── MobileShell.tsx    # MobileBottomNav + MobileMoreSheet
+│   │   └── MobileOnboarding.tsx
+│   ├── media/
+│   │   ├── AttachmentDetail.tsx
+│   │   └── AttachmentsSection.tsx
+│   ├── ui-kit.tsx             # Icon, formatVital, sexLabel…
+│   ├── AdvancedSearch.tsx
+│   ├── UploadZone.tsx
+│   ├── AuthGate.tsx
+│   └── HelpPanel.tsx
+└── store/                     # Vide — Zustand disponible si besoin
 ```
 
 ---
 
-## Modèle de données (TypeScript)
+## Modèle de données
 
 ```ts
 interface GenealogyData {
-  individuals: Map<string, Individual>;
-  families:    Map<string, Family>;
-  errors:      Array<{ line?: number; message: string }>;
+  individuals: Map<PersonId, Individual>;   // PersonId = "@I1@"
+  families:    Map<FamilyId, Family>;       // FamilyId = "@F1@"
+  errors:      ParseError[];
 }
 
 interface Individual {
-  id: string;                  // "@I1@"
+  id: PersonId;
   name: { given: string; surname: string; suffix?: string; display: string };
-  sex: "M" | "F" | "U";
+  sex: 'M' | 'F' | 'U';
   birth: GEvent | null;
   death: GEvent | null;
   occupation: string;
   note: string;
-  famc: string[];              // familles où cet individu est enfant
-  fams: string[];              // familles où cet individu est conjoint
+  famc: FamilyId[];   // familles où cet individu est enfant (→ parents)
+  fams: FamilyId[];   // familles où cet individu est conjoint
 }
 
-interface Family {
-  id: string;                  // "@F1@"
-  husband: string | null;
-  wife:    string | null;
-  children: string[];
-  marriage: GEvent | null;
-}
-
-interface GEvent {
-  date: { raw: string; year: number|null; month: number|null; day: number|null; display: string };
-  place: string;
+interface Dataset extends GenealogyData {
+  fileName: string;
+  prefix: string;    // 3 chars, namespacing IDs lors de la fusion multi-fichiers
+  rawText?: string;  // texte brut conservé pour la persistance localStorage
 }
 ```
 
+Types complets dans `src/types/genealogy.ts` (TabId, ViewProps, AppSettings, AdvancedFilter,
+ValidationError, StatsAggregates, GeocodedPlace, DuplicateCandidate, etc.).
+
 **Numérotation Sosa-Stradonitz** : racine = 1, père = 2N, mère = 2N+1, génération = floor(log2(sosa)).
-**Numérotation d'Aboville** : `descendance.js → Descendance.computeAboville`.
+**Numérotation d'Aboville** : `Descendance.computeAboville` dans `src/lib/descendance.ts`.
+
+---
+
+## Persistance de session (localStorage)
+
+Au relancement de la PWA, la session est restaurée automatiquement sans action utilisateur.
+
+| Clé | Contenu |
+|---|---|
+| `genealogor.savedDatasets` | JSON `[{fileName, prefix, text}]` — raw GEDCOM/CSV re-parsé au chargement |
+| `genealogor.selectedId` | PersonId de la dernière personne sélectionnée |
+| `genealogor.activeTab` | TabId du dernier onglet actif |
+| `genealogor.theme` | `'light'` ou `'dark'` |
+
+Erreurs de quota `localStorage` silencieusement ignorées. Le reset mobile efface également ces clés.
 
 ---
 
 ## Design system / tokens CSS
 
-Les tokens sont des variables CSS déclarées dans `Genealogor.html` (à extraire vers `src/styles/tokens.css`).
-Le thème bascule via `data-theme` sur `<html>`.
+Tokens dans `src/styles/tokens.css`, thème via `data-theme="light|dark"` sur `<html>`.
+Toujours utiliser `var(--token)` — ne jamais coder une couleur en dur.
 
-### Couleurs (light → dark)
+### Tokens principaux
 ```css
-/* Light */
---bg:            oklch(0.995 0.003 250)   /* fond principal */
---surface:       oklch(0.975 0.004 250)   /* cartes/inputs */
---surface-hover: oklch(0.955 0.005 250)
---border:        oklch(0.91 0.006 250)
---border-strong: oklch(0.82 0.008 250)
---ink:           oklch(0.18 0.012 260)    /* texte principal */
---ink-muted:     oklch(0.42 0.01 260)
---ink-faint:     oklch(0.6 0.008 260)
---accent:        oklch(0.55 0.14 265)     /* indigo */
---accent-soft:   oklch(0.95 0.025 265)
---sex-m:         oklch(0.6 0.1 230)       /* bleu */
---sex-f:         oklch(0.62 0.13 350)     /* rose */
---danger:        oklch(0.55 0.18 25)
---warn:          oklch(0.62 0.13 70)
---success:       oklch(0.58 0.13 145)
-
-/* Dark : voir Genealogor.html l.43-58 */
+--bg · --surface · --surface-hover · --border · --border-strong
+--ink · --ink-muted · --ink-faint
+--accent · --accent-soft
+--sex-m · --sex-f
+--danger · --warn · --success
 ```
 
 ### Typographie
@@ -177,62 +168,57 @@ Le thème bascule via `data-theme` sur `<html>`.
 - **Serif** : Iowan Old Style / Palatino / Georgia (livre PDF uniquement)
 - Base mobile : 14px body ; jamais < 10px pour le mono.
 
-### Keyframes à extraire
-`sheetUp` · `spin` · `shimmer` · `starPop` · `slideFromRight` · `slideFromLeft` · `fadeIn` ·
-`tabFadeSlide`. Easing iOS : `cubic-bezier(0.32, 0.72, 0, 1)`.
-
 ### Règles de forme
 - Rayons : `rounded-md` cartes, `rounded-full` chips/boutons, `rounded-xl` / 28px sheets.
-- Cibles tactiles mobile : ≥ 44px (classe `.touch-target`, `h-11` sur inputs).
+- Cibles tactiles mobile : ≥ 44px (`h-11` sur inputs).
 - Paddings responsives : `px-4 sm:px-6`.
 
 ---
 
-## Comportements clés à reproduire
+## Comportements implémentés
 
 - **Split-pane desktop** : `[liste | détail + tab-bar]`, colonne unique sur mobile < 768px.
-- **Bottom-nav mobile** : 4 onglets primaires + feuille « Plus » (favoris/récents/secondaires).
-- **Transitions** : slide right/left entre liste↔détail, swipe-back depuis bord gauche, `tabFadeSlide` entre onglets.
-- **Permalink stable** : URL encode `person`, `tab`, `q`, `fav`, `ft`, `adv` — restauré au chargement.
-- **Favoris & récents** : localStorage via `MUI.useFavorites` / `MUI.useRecentlyViewed`.
-- **Long-press / clic droit** → menu contextuel (favori, profil, comparer, copier lien, exporter JSON, partager).
-- **Masque vivants** (`Privacy`) : `filter: blur` sur personnes sans date de décès nées après `année-100`. Hover pour révéler.
-- **Haptique** : `MUI.haptic(level)` (Vibration API) sur pull-to-refresh, long-press, actions destructives.
-- **Citations par fait** : badge 📎 dans le profil selon `factKind` (birth/marriage/death/…).
+- **Bottom-nav mobile** : 4 onglets primaires + feuille « Plus » (onglets secondaires, reset, ajout fichier).
+- **Navigation historique** : pile `navStack` / `navIdx` dans `App.tsx` (Alt+← / Alt+→).
+- **Persistance session** : localStorage — datasets, selectedId, activeTab restaurés au relancement PWA.
+- **Multi-fichiers** : plusieurs `.ged`/`.csv` chargés simultanément, fusionnés par `mergeDatasets()`.
+- **Recherche** : filtre nom simple + plein-texte MiniSearch (`FT`) + filtres avancés.
+- **Masque vivants** (`Privacy`) : `filter: blur` sur personnes sans date de décès nées après `année-100`.
+- **Citations par fait** : pièces jointes liées à un `factKind` (birth/marriage/death/…).
+- **Export** : CSV et GEDCOM depuis la barre de liste ; GEDCOM 5.5.1 et 7.0 depuis le sérialiseur.
+
+## Comportements non encore implémentés
+
+- Favoris & récents (localStorage `useFavorites` / `useRecentlyViewed`)
+- Long-press / clic droit → menu contextuel
+- Haptique (Vibration API)
+- Transitions slide entre liste↔détail et swipe-back mobile
+- Partage via Web Share API (`sharePerson`)
 
 ---
 
 ## Fonctionnalités IA (toutes optionnelles)
 
-- Recherche langage naturel FR → filtre JSON → appliqué localement.
-- Vérification Wikipédia (opensearch FR + analyse plausibilité IA).
+Configurables dans `SettingsPanel` → fournisseur : Claude / OpenRouter / Ollama.
+Couche d'abstraction : `AiCall` / `AiCallMultimodal` dans `src/components/views/SettingsPanel.tsx`.
+
+- Recherche langage naturel FR → filtre `AdvancedFilter` → appliqué localement.
+- Vérification Wikipédia (opensearch FR + analyse plausibilité).
 - OCR d'acte : image → champs structurés (modèle vision).
 - Bio courte + récit familial long + suggestions de recherche + normalisation lieux + dédoublonnage sémantique.
-- Tous les résultats IA mis en cache dans localStorage.
-- Couche LLM (`AiCall` / `AiCallMultimodal`) route vers Claude, OpenRouter ou Ollama selon préférences.
-- **En production** : déplacer les clés API côté serveur (fonction serverless).
+- Tous les résultats IA mis en cache dans `localStorage`.
+
+**⚠️ En production** : déplacer les clés API côté serveur (fonction serverless) — elles sont
+actuellement stockées côté client dans `localStorage`.
 
 ---
 
-## Pièges de migration
+## Roadmap
 
-1. **Globaux `window.*`** : remplacer `(function(){ … window.X = … })()` par `export const X = …`.
-2. **Ordre de chargement** : l'ordre des `<script>` dans `Genealogor.html` (l.192-238) reflète les dépendances — respecter cet ordre dans les imports ES.
-3. **Couche LLM** : `AiCall` / `AiCallMultimodal` dans `settings-panel.jsx` → à sécuriser via serverless en prod.
-4. **`history.jsx`** est déprécié — intégré dans `app.jsx`, **ne pas migrer**.
-5. **Virtualisation** : pour arbres > 10k individus, virtualiser la liste (react-window) et mémoïser implexe et graphe.
-
----
-
-## Priorités de migration
-
-1. Setup Vite + React 18 + TypeScript + Tailwind v4 + vite-plugin-pwa
-2. Extraire les tokens CSS → `src/styles/tokens.css`
-3. Convertir les modules métier `.js` en ES modules (`src/lib/`)
-4. Typer le modèle de données (`src/types/genealogy.ts`)
-5. Implémenter le shell `App` avec state global + routing
-6. Migrer les vues une par une (commencer par Profil, Ascendance, Descendants)
-7. Intégrer Leaflet (react-leaflet) + D3 (npm)
-8. PWA via vite-plugin-pwa
-9. Tests unitaires sur les fonctions pures (parser, sérialiseurs, calendrier républicain, Sosa/Aboville)
-10. Sécuriser la couche IA (serverless)
+| Priorité | Tâche |
+|---|---|
+| 1 | Tests unitaires — parser GEDCOM, sérialiseurs, calendrier républicain, Sosa/Aboville |
+| 2 | Sécuriser la couche IA via serverless (clés API côté serveur) |
+| 3 | Virtualisation de la liste pour arbres > 10 000 individus (react-window) |
+| 4 | Favoris & récents, long-press, haptique, transitions slide mobile |
+| 5 | Accessibilité — audit clavier/ARIA des modales, sheets et graphe |
