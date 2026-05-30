@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+@import "./styles/tokens.css";
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv11";
+}
+
+.font-mono, code, kbd, pre {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Scrollbar */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; border: 2px solid var(--bg); }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* Focus ring */
+button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+/* Privacy mask — personnes vivantes */
+.is-private {
+  filter: blur(5px);
+  -webkit-filter: blur(5px);
+  transition: filter 0.18s ease-out;
+  user-select: none;
+  cursor: help;
+}
+.is-private:hover, .is-private:focus, .is-private:active {
+  filter: blur(0);
+  -webkit-filter: blur(0);
+}
+
+.privacy-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--warn) 14%, transparent);
+  color: var(--warn);
+  border: 1px solid color-mix(in oklch, var(--warn) 40%, transparent);
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+
+/* Keyframes */
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes starPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+@keyframes slideFromRight {
+  from { transform: translateX(100%); opacity: 0.6; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideFromLeft {
+  from { transform: translateX(-100%); opacity: 0.6; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes tabFadeSlide {
+  from { transform: translateY(6px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Print */
+@media print {
+  body.print-mode header, body.print-mode footer,
+  body.print-mode aside, body.print-mode .no-print { display: none !important; }
+  body.print-mode { background: white; color: black; }
+  body.print-mode * { box-shadow: none !important; }
+  body.print-card-mode > *:not(.print-card-root) { display: none !important; }
+  body.print-card-mode #root { display: block !important; }
+  body.print-card-mode #business-card-page { box-shadow: none !important; margin: 0 !important; }
+  @page { size: A4; margin: 0; }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  body footer { display: none; }
+  button, [role="button"], a { -webkit-tap-highlight-color: transparent; }
+  html, body { overscroll-behavior-y: contain; }
+  .overflow-y-auto, .overflow-auto { -webkit-overflow-scrolling: touch; }
+  body { font-size: 14px; }
+  .mobile-pb-safe { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); }
+  .mobile-px-tight { padding-left: 16px !important; padding-right: 16px !important; }
+  main section .overflow-y-auto, main section .overflow-auto { scroll-padding-bottom: 24px; }
+  .pane-slide-in-right { animation: slideFromRight 0.28s cubic-bezier(0.32, 0.72, 0, 1); }
+  .pane-slide-in-left  { animation: slideFromLeft 0.28s cubic-bezier(0.32, 0.72, 0, 1); }
+  .tab-anim { animation: tabFadeSlide 0.22s ease-out; }
+  .touch-target, .touch-target * { min-height: 44px; min-width: 44px; }
+}
+
+@media (min-width: 768px) {
+  .mobile-bottom-nav { display: none !important; }
+}
