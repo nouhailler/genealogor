@@ -4,6 +4,19 @@ Format : [SemVer](https://semver.org) · Dates ISO 8601
 
 ---
 
+## [Unreleased] — 2026-05-31
+
+### Ajouté
+- Déploiement Netlify : `netlify.toml` (build `npm run build → dist/`, redirect SPA `/*`,
+  cache-control no-cache sur `sw.js` et `index.html`, Node 20)
+- `vitest.config.ts` : configuration Vitest séparée de `vite.config.ts` (bonne pratique)
+- Tests unitaires — 104 cas au total :
+  - Parser GEDCOM (`gedcom-parser.test.ts`) : 30 cas
+  - Calendrier républicain (`republican-calendar.test.ts`) : 36 cas (dont années sextiles)
+  - Sosa-Stradonitz + Aboville (`sosa-aboville.test.ts`) : 38 cas
+
+---
+
 ## [Unreleased] — Migration prototype → production (Vite + React + TypeScript)
 
 ### Ajouté
