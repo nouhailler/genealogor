@@ -4,6 +4,24 @@ Format : [SemVer](https://semver.org) · Dates ISO 8601
 
 ---
 
+## [Unreleased] — 2026-05-31
+
+### Ajouté
+- Fournisseur IA ChatGPT (OpenAI) : `POST https://api.openai.com/v1/chat/completions`,
+  clé API côté client, modèle par défaut `gpt-4o-mini`, support vision multimodal
+- Fournisseur IA Claude (Anthropic) : implémentation réelle via
+  `POST https://api.anthropic.com/v1/messages` avec en-tête `anthropic-dangerous-direct-browser-access`
+  (remplace l'ancienne interface `window.claude.complete`)
+- Menu Paramètres refondu : sélecteur 4 fournisseurs (Claude / ChatGPT / OpenRouter / Ollama)
+  + champs conditionnels + avertissement mixed-content HTTPS pour Ollama
+  + note de confidentialité (clé stockée uniquement en localStorage)
+
+### Modifié
+- `src/components/views/SettingsPanel.tsx` : ajout `ProviderId` union (`'claude'|'openai'|'openrouter'|'ollama'`),
+  dispatch `aiCall` et `aiCallMultimodal` couvrent les 4 fournisseurs
+
+---
+
 ## [Unreleased] — Migration prototype → production (Vite + React + TypeScript)
 
 ### Ajouté

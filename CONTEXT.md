@@ -199,17 +199,25 @@ Toujours utiliser `var(--token)` — ne jamais coder une couleur en dur.
 
 ## Fonctionnalités IA (toutes optionnelles)
 
-Configurables dans `SettingsPanel` → fournisseur : Claude / OpenRouter / Ollama.
-Couche d'abstraction : `AiCall` / `AiCallMultimodal` dans `src/components/views/SettingsPanel.tsx`.
+Configurables dans `SettingsPanel` → 4 fournisseurs : Claude (Anthropic) / ChatGPT (OpenAI) /
+OpenRouter / Ollama (local).
+Couche d'abstraction : `aiCall` / `aiCallMultimodal` dans `src/components/views/SettingsPanel.tsx`.
+
+| Fournisseur | Endpoint | Auth | Modèle par défaut |
+|---|---|---|---|
+| Claude | `https://api.anthropic.com/v1/messages` | `x-api-key` + `anthropic-dangerous-direct-browser-access: true` | `claude-haiku-4-5-20251001` |
+| ChatGPT | `https://api.openai.com/v1/chat/completions` | `Authorization: Bearer` | `gpt-4o-mini` |
+| OpenRouter | `https://openrouter.ai/api/v1/chat/completions` | `Authorization: Bearer` | configurable (liste auto) |
+| Ollama | `{baseUrl}/api/generate` | aucune | `llama3.2` |
 
 - Recherche langage naturel FR → filtre `AdvancedFilter` → appliqué localement.
 - Vérification Wikipédia (opensearch FR + analyse plausibilité).
-- OCR d'acte : image → champs structurés (modèle vision).
+- OCR d'acte : image → champs structurés (modèle vision) — Claude, ChatGPT et OpenRouter supportés.
 - Bio courte + récit familial long + suggestions de recherche + normalisation lieux + dédoublonnage sémantique.
 - Tous les résultats IA mis en cache dans `localStorage`.
 
-**⚠️ En production** : déplacer les clés API côté serveur (fonction serverless) — elles sont
-actuellement stockées côté client dans `localStorage`.
+**⚠️ Clés API** : stockées côté client dans `localStorage` — exposées dans le bundle.
+**⚠️ Ollama en prod** : bloqué par le navigateur depuis un site HTTPS (mixed content). Usage local uniquement.
 
 ---
 
