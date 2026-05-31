@@ -6,81 +6,79 @@ Format : [SemVer](https://semver.org) · Dates ISO 8601
 
 ## [Unreleased] — 2026-05-31
 
-### Ajouté
-- `.github/PULL_REQUEST_TEMPLATE.md` : checklist de validation post-déploiement (7 sections :
-  build automatique, PWA Android/iOS, offline, appels IA×4 fournisseurs, sécurité clés,
-  non-régression, feu vert merge)
-- `scripts/validate-pwa.mjs` : script Node ESM sans dépendance externe — 14 contrôles sur
-  dist/ (index.html, sw.js, manifest, icônes 192/512/maskable, fichiers physiques, base path)
-- `npm run validate:pwa` : lanceur du script de validation
-- `public/icons/icon-192.png` + `public/icons/icon-512.png` : icônes PNG placeholder
-  (192×192 et 512×512 solid-color, generées en Node natif) — requis pour l'installabilité PWA
+### Ajouté — Qualité & déploiement
+- `netlify.toml` : déploiement Netlify (SPA redirect `/*`, cache-control no-cache sur `sw.js`
+  et `index.html`, Node 20, base Vite à `/`)
+- `vitest.config.ts` : configuration Vitest séparée de `vite.config.ts`
+- `npm run test` / `npm run test:watch` : 104 tests unitaires
+- `scripts/validate-pwa.mjs` : 14 contrôles sur `dist/` (manifest, icônes, sw.js, base path) —
+  modules Node natifs uniquement, aucun appel réseau
+- `npm run validate:pwa` : lanceur du script
+- `.github/PULL_REQUEST_TEMPLATE.md` : checklist de validation post-déploiement (7 sections)
+- `public/icons/icon-192.png` + `icon-512.png` : icônes PNG placeholder pour installabilité PWA
 
----
+### Ajouté — Tests unitaires
+- `src/lib/gedcom-parser.test.ts` : 30 cas (entrées invalides, noms, dates, qualificatifs,
+  familles, CONT/CONC, BOM UTF-8, CRLF Windows)
+- `src/lib/republican-calendar.test.ts` : 36 cas (bornes de période, dates historiques de
+  référence — Thermidor, 18 Brumaire —, jours complémentaires, années sextiles)
+- `src/lib/sosa-aboville.test.ts` : 38 cas (numérotation Sosa père/mère, implexe, endogamie,
+  Aboville tri/maxGen/dédup, findDeadBranches, espérance de vie par cohorte)
 
-### Ajouté
-- Fournisseur IA ChatGPT (OpenAI) : `POST https://api.openai.com/v1/chat/completions`,
-  clé API côté client, modèle par défaut `gpt-4o-mini`, support vision multimodal
-- Fournisseur IA Claude (Anthropic) : implémentation réelle via
-  `POST https://api.anthropic.com/v1/messages` avec en-tête `anthropic-dangerous-direct-browser-access`
-  (remplace l'ancienne interface `window.claude.complete`)
-- Menu Paramètres refondu : sélecteur 4 fournisseurs (Claude / ChatGPT / OpenRouter / Ollama)
-  + champs conditionnels + avertissement mixed-content HTTPS pour Ollama
-  + note de confidentialité (clé stockée uniquement en localStorage)
+### Ajouté — Fournisseurs IA
+- Fournisseur **Claude (Anthropic)** : implémentation réelle via
+  `POST https://api.anthropic.com/v1/messages` — en-têtes `x-api-key`,
+  `anthropic-dangerous-direct-browser-access: true`, support vision multimodal
+- Fournisseur **ChatGPT (OpenAI)** : `POST https://api.openai.com/v1/chat/completions`,
+  modèle par défaut `gpt-4o-mini`, support vision multimodal
+- Menu Paramètres refondu : sélecteur 4 fournisseurs (Claude / ChatGPT / OpenRouter / Ollama),
+  champs conditionnels (clé API + modèle pour les providers cloud, URL + modèle pour Ollama),
+  avertissement mixed-content HTTPS pour Ollama, note de confidentialité localStorage
 
 ### Modifié
-- `src/components/views/SettingsPanel.tsx` : ajout `ProviderId` union (`'claude'|'openai'|'openrouter'|'ollama'`),
-  dispatch `aiCall` et `aiCallMultimodal` couvrent les 4 fournisseurs
+- `src/components/views/SettingsPanel.tsx` : `ProviderId` union
+  `'claude' | 'openai' | 'openrouter' | 'ollama'` ; `aiCall` et `aiCallMultimodal` couvrent
+  les 4 fournisseurs
+- `package.json` : scripts `test`, `test:watch`, `validate:pwa` ajoutés
 
 ---
 
-## [Unreleased] — Migration prototype → production (Vite + React + TypeScript)
+## [0.2.0] — 2026-05-30
+
+### Description
+Migration prototype → production complète. Application Vite + React 19 + TypeScript,
+PWA offline-first, déployable en statique.
 
 ### Ajouté
-- `CONTEXT.md` : documentation technique de référence pour la migration
-- `CHANGELOG.md` : ce fichier
-
-### À faire
-Voir `CONTEXT.md` § Priorités de migration pour la liste complète.
+- 13 vues React : Profil · Ascendance (éventail Sosa / pedigree / sablier) · Descendants ·
+  Frise chronologique · Carte Leaflet · Statistiques · Graphe d3-force · Comparer ·
+  Implications · Qualité · Médias · Lab IA · Lieux
+- Parser GEDCOM 5.5.1 → `{individuals, families}` + sérialiseurs GEDCOM 5.5.1 et 7.0
+- Import CSV, export CSV
+- Numérotation Sosa-Stradonitz + d'Aboville
+- Calendrier républicain (1792–1805) avec conversion bidirectionnelle
+- Gazetteer 101 départements INSEE + 97 URLs archives départementales
+- Lab IA : recherche NL · Wikipedia · OCR · bio · récit · suggestions · normalisation lieux ·
+  dédoublonnage sémantique — résultats mis en cache dans `localStorage`
+- Couche LLM (OpenRouter + Ollama ; Claude placeholder)
+- Masque « personnes vivantes » (floutage CSS)
+- Persistance session `localStorage` : datasets, selectedId, activeTab, theme
+- Pièces jointes IndexedDB + OCR d'acte
+- Fusion de doublons, fiche imprimable A4, mode présentation plein écran
+- Bottom-nav mobile + feuille « Plus », onboarding PWA
+- Navigation historique (Alt+← / Alt+→)
+- Multi-fichiers GEDCOM/CSV avec namespacing par préfixe 3 chars
+- PWA (Workbox, registerType: autoUpdate, manifest standalone)
+- `CLAUDE.md` + `CONTEXT.md` : documentation technique pour Claude Code
 
 ---
 
 ## [0.1.0-prototype] — 2026-05-29
 
 ### Description
-Prototype haute-fidélité fonctionnel livré dans `prototype/`.
-Sert de référence exhaustive du comportement et du design attendus.
-
-### Contenu
-- 13 vues : Profil · Ascendance (éventail/pedigree/sablier) · Descendance · Frise · Carte ·
-  Statistiques · Graphe · Comparer · Implications · Validation · Médias · Lab IA
-- Parser GEDCOM 5.5.1 + sérialiseurs 5.5.1 et 7.0
-- Import CSV
-- Numérotation Sosa-Stradonitz + d'Aboville
-- Carte Leaflet (Points / Migrations / Heatmap / Patronymes)
-- Graphe d3-force
-- Frise chronologique avec contexte historique
-- Calendrier républicain (1792-1805)
-- Gazetteer 101 départements INSEE + 97 URLs archives départementales
-- Lab IA : recherche NL · OCR · bio · récit · suggestions · normalisation lieux · dédoublonnage
-- Couche LLM unifiée (Claude / OpenRouter / Ollama)
-- Masque « personnes vivantes » (floutage CSS)
-- Favoris + récents (localStorage)
-- Permaliens stables (URL state)
-- Bottom-nav mobile + transitions slide + swipe-back
-- Onboarding PWA + bannière d'installation
-- Service worker manuel (offline-first)
-- Livre généalogique PDF (HTML imprimable)
-- Galerie médias + OCR d'acte (IndexedDB)
-- Fusion de doublons
-- Fiche imprimable A4 (business card)
-- Mode présentation plein écran
-- Auth optionnelle multi-utilisateur
+Prototype haute-fidélité livré dans `prototype/`.
+Sert de référence visuelle et comportementale exhaustive — ne pas modifier.
 
 ### Stack
-- React 18 UMD + Babel Standalone (in-browser)
-- Tailwind CSS CDN
-- Leaflet 1.9.4 CDN
-- D3 v7 CDN
-- MiniSearch 7.1.0 CDN
-- JSZip 3.10.1 CDN
+React 18 UMD + Babel Standalone · Tailwind CDN · Leaflet CDN · D3 v7 CDN ·
+MiniSearch CDN · JSZip CDN
