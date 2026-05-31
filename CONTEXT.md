@@ -221,12 +221,23 @@ Couche d'abstraction : `aiCall` / `aiCallMultimodal` dans `src/components/views/
 
 ---
 
+## Validation & qualité
+
+| Outil | Commande | Ce qu'il vérifie |
+|---|---|---|
+| Build | `npm run build` | TypeScript + Vite + génération sw.js |
+| Validation PWA | `npm run validate:pwa` | 14 contrôles sur dist/ (manifest, icônes, base path…) |
+| Template PR | `.github/PULL_REQUEST_TEMPLATE.md` | Checklist 7 sections pour chaque merge |
+
+Le script `scripts/validate-pwa.mjs` utilise uniquement les modules Node natifs (fs, path, zlib).
+Aucun appel réseau, aucune dépendance externe.
+
+---
+
 ## Roadmap
 
 | Priorité | Tâche |
 |---|---|
-| 1 | Tests unitaires — parser GEDCOM, sérialiseurs, calendrier républicain, Sosa/Aboville |
-| 2 | Sécuriser la couche IA via serverless (clés API côté serveur) |
-| 3 | Virtualisation de la liste pour arbres > 10 000 individus (react-window) |
-| 4 | Favoris & récents, long-press, haptique, transitions slide mobile |
-| 5 | Accessibilité — audit clavier/ARIA des modales, sheets et graphe |
+| 1 | Favoris & récents, long-press, haptique, transitions slide mobile |
+| 2 | Accessibilité — audit clavier/ARIA des modales, sheets et graphe |
+| 3 | Icônes PWA définitives (remplacer les placeholders solid-color par les vraies icônes) |

@@ -7,6 +7,18 @@ Format : [SemVer](https://semver.org) · Dates ISO 8601
 ## [Unreleased] — 2026-05-31
 
 ### Ajouté
+- `.github/PULL_REQUEST_TEMPLATE.md` : checklist de validation post-déploiement (7 sections :
+  build automatique, PWA Android/iOS, offline, appels IA×4 fournisseurs, sécurité clés,
+  non-régression, feu vert merge)
+- `scripts/validate-pwa.mjs` : script Node ESM sans dépendance externe — 14 contrôles sur
+  dist/ (index.html, sw.js, manifest, icônes 192/512/maskable, fichiers physiques, base path)
+- `npm run validate:pwa` : lanceur du script de validation
+- `public/icons/icon-192.png` + `public/icons/icon-512.png` : icônes PNG placeholder
+  (192×192 et 512×512 solid-color, generées en Node natif) — requis pour l'installabilité PWA
+
+---
+
+### Ajouté
 - Fournisseur IA ChatGPT (OpenAI) : `POST https://api.openai.com/v1/chat/completions`,
   clé API côté client, modèle par défaut `gpt-4o-mini`, support vision multimodal
 - Fournisseur IA Claude (Anthropic) : implémentation réelle via
