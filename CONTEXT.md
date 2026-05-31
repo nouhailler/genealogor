@@ -208,8 +208,26 @@ Couche d'abstraction : `AiCall` / `AiCallMultimodal` dans `src/components/views/
 - Bio courte + récit familial long + suggestions de recherche + normalisation lieux + dédoublonnage sémantique.
 - Tous les résultats IA mis en cache dans `localStorage`.
 
-**⚠️ En production** : déplacer les clés API côté serveur (fonction serverless) — elles sont
-actuellement stockées côté client dans `localStorage`.
+**⚠️ En production** : les clés IA sont stockées côté client dans `localStorage` et exposées
+dans le bundle. Ollama est inopérant sur le déploiement Netlify (mixed-content HTTPS→HTTP).
+Les deux seront adressés ultérieurement via une Netlify Function proxy.
+
+---
+
+## Déploiement Netlify
+
+Stratégie : repo unique, branche `deploy/netlify`, application 100 % statique.
+
+| Aspect | Valeur |
+|---|---|
+| Fichier de config | `netlify.toml` à la racine |
+| Commande build | `npm run build` → `dist/` |
+| Node version | 20 |
+| Redirects | `/* → /index.html` (SPA) |
+| Cache SW | `Cache-Control: no-cache` sur `sw.js` et `index.html` |
+| `base` Vite | non défini (sert à `/`) |
+| Ollama en prod | inopérant (mixed content HTTPS→HTTP) |
+| Clés IA | côté client pour l'instant — à proxifier via Netlify Function |
 
 ---
 
@@ -217,8 +235,6 @@ actuellement stockées côté client dans `localStorage`.
 
 | Priorité | Tâche |
 |---|---|
-| 1 | Tests unitaires — parser GEDCOM, sérialiseurs, calendrier républicain, Sosa/Aboville |
-| 2 | Sécuriser la couche IA via serverless (clés API côté serveur) |
-| 3 | Virtualisation de la liste pour arbres > 10 000 individus (react-window) |
-| 4 | Favoris & récents, long-press, haptique, transitions slide mobile |
-| 5 | Accessibilité — audit clavier/ARIA des modales, sheets et graphe |
+| 1 | Tests unitaires — sérialiseurs (parser GEDCOM, calendrier républicain, Sosa/Aboville couverts) |
+| 2 | Favoris & récents, long-press, haptique, transitions slide mobile |
+| 3 | Accessibilité — audit clavier/ARIA des modales, sheets et graphe |
