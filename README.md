@@ -6,6 +6,7 @@
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![PWA](https://img.shields.io/badge/PWA-installable-5A0FC8?logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
+[![Netlify](https://img.shields.io/badge/Deploy-Netlify-00C7B7?logo=netlify&logoColor=white)](https://www.netlify.com)
 [![License](https://img.shields.io/badge/licence-MIT-green)](LICENSE)
 
 ---
@@ -30,7 +31,7 @@
 
 ### 🔒 Privacy-first
 
-Aucune donnée ne quitte votre appareil — sauf les appels IA que *vous* configurez (Claude / OpenRouter / Ollama) et le géocodage via Nominatim. Les personnes probablement vivantes sont automatiquement floutées.
+Aucune donnée ne quitte votre appareil — sauf les appels IA que *vous* configurez et le géocodage via Nominatim. Les personnes probablement vivantes sont automatiquement floutées.
 
 ### 📱 PWA installable
 
@@ -49,6 +50,12 @@ npm run dev
 
 # Build de production
 npm run build
+
+# Valider le build PWA (manifest, icônes, sw.js…)
+npm run validate:pwa
+
+# Tests unitaires
+npm run test
 
 # Prévisualiser le build
 npm run preview
@@ -70,6 +77,7 @@ Ouvrez `http://localhost:5173`, importez un fichier `.ged` ou `.csv`, ou utilise
 | Recherche | [MiniSearch](https://lucaong.github.io/minisearch/) |
 | PWA | [vite-plugin-pwa](https://vite-pwa-org.netlify.app) (Workbox) |
 | Persistance | `localStorage` + `IndexedDB` (pièces jointes) |
+| Tests | [Vitest 4](https://vitest.dev) — 104 tests unitaires |
 
 ---
 
@@ -136,24 +144,30 @@ src/
 
 ## 🤖 Couche IA (optionnelle)
 
-Configurez votre fournisseur dans **Paramètres** (icône ⚙️) :
+Configurez votre fournisseur dans **Paramètres** (icône ⚙️). La clé API est stockée
+**uniquement dans votre navigateur** (localStorage) et n'est jamais envoyée ailleurs que vers
+l'API du fournisseur choisi.
 
-- **Claude** (Anthropic) — clé API côté client
-- **OpenRouter** — accès multi-modèles
-- **Ollama** — modèle local, 100 % offline
+| Fournisseur | Clé requise | Modèle par défaut |
+|---|---|---|
+| **Claude** (Anthropic) | `sk-ant-…` | `claude-haiku-4-5-20251001` |
+| **ChatGPT** (OpenAI) | `sk-…` | `gpt-4o-mini` |
+| **OpenRouter** | `sk-or-v1-…` | choix dans la liste (modèles gratuits disponibles) |
+| **Ollama** | aucune | `llama3.2` — fonctionne en local uniquement |
 
-Fonctions disponibles : recherche en langage naturel · vérification Wikipedia · OCR d'acte · biographie courte · récit familial · suggestions de recherche · normalisation de lieux · détection de doublons sémantiques. Tous les résultats sont mis en cache dans `localStorage`.
+> ⚠️ Ollama est bloqué par le navigateur depuis un site HTTPS (mixed content). Un avertissement est affiché dans les Paramètres.
 
-> ⚠️ En production, déplacez les clés API côté serveur (fonction serverless).
+Fonctions disponibles : recherche en langage naturel · vérification Wikipedia · OCR d'acte ·
+biographie courte · récit familial · suggestions de recherche · normalisation de lieux ·
+détection de doublons sémantiques. Tous les résultats sont mis en cache dans `localStorage`.
 
 ---
 
 ## 📋 Roadmap
 
-- [ ] Tests unitaires (parser GEDCOM, calendrier républicain, Sosa/Aboville)
-- [ ] Virtualisation de la liste pour les arbres > 10 000 individus
-- [ ] Sécurisation de la couche IA via serverless
-- [ ] Accessibilité (audit clavier/ARIA)
+- [ ] Icônes PWA définitives (remplacer les placeholders par les vraies icônes)
+- [ ] Favoris & récents, long-press, haptique, transitions slide mobile
+- [ ] Accessibilité — audit clavier/ARIA des modales, sheets et graphe
 
 ---
 
