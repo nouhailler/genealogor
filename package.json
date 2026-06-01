@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "validate:pwa": "node scripts/validate-pwa.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

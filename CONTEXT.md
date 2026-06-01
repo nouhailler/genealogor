@@ -14,13 +14,13 @@ Cible : généalogistes francophones (calendrier républicain, départements INS
 
 ---
 
-## État actuel : application de production (migration terminée)
+## État actuel : production
 
 La migration prototype → production est **complète**. L'application tourne sur Vite + React 19 +
-TypeScript. Le dossier `prototype/` est conservé uniquement comme **référence visuelle** — ne pas
-le modifier ni le supprimer.
+TypeScript, déployée sur Netlify. Le dossier `prototype/` est conservé uniquement comme
+**référence visuelle** — ne pas le modifier ni le supprimer.
 
-### Stack en production
+### Stack
 
 | Aspect | Choix |
 |---|---|
@@ -28,19 +28,33 @@ le modifier ni le supprimer.
 | UI | React 19 + TypeScript 6 |
 | Styles | Tailwind v4 (plugin Vite) + variables CSS `oklch` dans `src/styles/tokens.css` |
 | State | `useState`/`useMemo` dans `App.tsx` (Zustand installé, non utilisé) |
-| Persistance session | `localStorage` (datasets raw text + selectedId + activeTab) |
+| Persistance session | `localStorage` (datasets raw text + selectedId + activeTab + aiSettings) |
 | Persistance médias | IndexedDB via `AttachmentStore` |
 | Carte | react-leaflet + tuiles OpenStreetMap |
 | Graphe | d3-force (npm) |
 | Recherche | MiniSearch (npm) |
-| PWA | vite-plugin-pwa (Workbox) |
+| PWA | vite-plugin-pwa (Workbox, registerType: autoUpdate) |
 | Export | jszip (npm) |
+| Tests | Vitest 4 (`vitest.config.ts` séparé de `vite.config.ts`) |
 
 ---
 
 ## Architecture source
 
 ```
+.github/
+└── PULL_REQUEST_TEMPLATE.md   # Checklist de validation post-déploiement (7 sections)
+
+scripts/
+└── validate-pwa.mjs           # Validation build PWA — 14 contrôles, modules Node natifs
+
+public/
+├── favicon.svg
+├── icons.svg
+└── icons/
+    ├── icon-192.png            # PWA icon 192×192
+    └── icon-512.png            # PWA icon 512×512 (maskable)
+
 src/
 ├── App.tsx                    # Shell : état global, routing par onglets, session localStorage
 ├── main.tsx                   # Point d'entrée React
@@ -48,12 +62,15 @@ src/
 ├── styles/tokens.css          # Variables CSS oklch (light/dark via data-theme sur <html>)
 ├── lib/                       # Logique métier pure (sans React), re-exportée via index.ts
 │   ├── gedcom-parser.ts       # parse(text) → GenealogyData
+│   ├── gedcom-parser.test.ts  # 30 tests unitaires Vitest
 │   ├── gedcom-serializer.ts   # serialize / download (GEDCOM 5.5.1 + 7.0)
 │   ├── csv-importer.ts        # importCSV(text) → GenealogyData
 │   ├── fulltext-search.ts     # search(query, individuals) via MiniSearch
 │   ├── implex.ts              # Implex.compute — implexe / endogamie par génération
 │   ├── descendance.ts         # Descendance.computeAboville
+│   ├── sosa-aboville.test.ts  # 38 tests unitaires Vitest
 │   ├── republican-calendar.ts # Conversion grégorien ↔ républicain (1792-1805)
+│   ├── republican-calendar.test.ts # 36 tests unitaires Vitest
 │   ├── place-gazetteer.ts     # 101 départements INSEE
 │   ├── archives-templates.ts  # 97 URLs archives départementales + portails
 │   ├── privacy.ts             # usePrivacy(), shouldMask()
@@ -76,7 +93,7 @@ src/
 │   │   ├── StatsView.tsx      # inclut AgePyramid
 │   │   ├── ValidationView.tsx
 │   │   ├── AiLabView.tsx
-│   │   ├── SettingsPanel.tsx  # couche LLM (AiCall / AiCallMultimodal)
+│   │   ├── SettingsPanel.tsx  # couche LLM — aiCall / aiCallMultimodal (4 providers)
 │   │   ├── BiographyPanel.tsx
 │   │   ├── BusinessCard.tsx
 │   │   ├── PresentationMode.tsx
@@ -143,6 +160,8 @@ Au relancement de la PWA, la session est restaurée automatiquement sans action 
 | `genealogor.selectedId` | PersonId de la dernière personne sélectionnée |
 | `genealogor.activeTab` | TabId du dernier onglet actif |
 | `genealogor.theme` | `'light'` ou `'dark'` |
+| `genealogor.aiSettings` | JSON `{provider, claude?, openai?, openrouter?, ollama?}` — config fournisseur IA |
+| `genealogor.shortBios` · `narratives` · `semanticDedupeCache` · etc. | Caches des résultats IA |
 
 Erreurs de quota `localStorage` silencieusement ignorées. Le reset mobile efface également ces clés.
 
@@ -199,18 +218,24 @@ Toujours utiliser `var(--token)` — ne jamais coder une couleur en dur.
 
 ## Fonctionnalités IA (toutes optionnelles)
 
-Configurables dans `SettingsPanel` → fournisseur : Claude / OpenRouter / Ollama.
-Couche d'abstraction : `AiCall` / `AiCallMultimodal` dans `src/components/views/SettingsPanel.tsx`.
+Configurables dans `SettingsPanel` (icône ⚙️) → 4 fournisseurs.
+Couche d'abstraction : `aiCall` / `aiCallMultimodal` exportées depuis `src/components/views/SettingsPanel.tsx`.
 
-- Recherche langage naturel FR → filtre `AdvancedFilter` → appliqué localement.
-- Vérification Wikipédia (opensearch FR + analyse plausibilité).
-- OCR d'acte : image → champs structurés (modèle vision).
-- Bio courte + récit familial long + suggestions de recherche + normalisation lieux + dédoublonnage sémantique.
-- Tous les résultats IA mis en cache dans `localStorage`.
+| Fournisseur | Endpoint | Auth | Modèle par défaut |
+|---|---|---|---|
+| Claude (Anthropic) | `https://api.anthropic.com/v1/messages` | `x-api-key` + `anthropic-dangerous-direct-browser-access: true` | `claude-haiku-4-5-20251001` |
+| ChatGPT (OpenAI) | `https://api.openai.com/v1/chat/completions` | `Authorization: Bearer` | `gpt-4o-mini` |
+| OpenRouter | `https://openrouter.ai/api/v1/chat/completions` | `Authorization: Bearer` | configurable (liste auto) |
+| Ollama | `{baseUrl}/api/generate` | aucune | `llama3.2` |
 
-**⚠️ En production** : les clés IA sont stockées côté client dans `localStorage` et exposées
-dans le bundle. Ollama est inopérant sur le déploiement Netlify (mixed-content HTTPS→HTTP).
-Les deux seront adressés ultérieurement via une Netlify Function proxy.
+Fonctions : recherche NL · vérif Wikipedia · OCR d'acte · bio courte · récit familial ·
+suggestions de recherche · normalisation de lieux · dédoublonnage sémantique.
+Tous les résultats sont mis en cache dans `localStorage`.
+
+**⚠️ Clés API** : stockées côté client dans `localStorage`. Pas de backend — choix assumé.
+**⚠️ Ollama en prod** : bloqué par le navigateur depuis un site HTTPS (mixed content).
+Un avertissement est affiché dans le panneau Paramètres. Usage local uniquement (`npm run dev`).
+À proxifier ultérieurement via une Netlify Function.
 
 ---
 
@@ -231,10 +256,38 @@ Stratégie : repo unique, branche `deploy/netlify`, application 100 % statique.
 
 ---
 
+## Tests unitaires
+
+Runner : **Vitest 4** (`npm run test` / `npm run test:watch`).
+Config : `vitest.config.ts` (séparé de `vite.config.ts` pour ne pas polluer le build).
+
+| Fichier | Suites | Tests | Couvre |
+|---|---|---|---|
+| `src/lib/gedcom-parser.test.ts` | 7 | 30 | parseLine, buildTree, parseDate, parseName, parseEvent, parseIndividual, parseFamily |
+| `src/lib/republican-calendar.test.ts` | 6 | 36 | fromGregorian, format, formatGregorian, formatYear, isInPeriod — dont années sextiles |
+| `src/lib/sosa-aboville.test.ts` | 10 | 38 | Sosa (numérotation, implexe, endogamie), Aboville (tri, maxGen, dédup), findDeadBranches, cohort |
+| **Total** | **23** | **104** | |
+
+---
+
+## Validation & qualité
+
+| Commande | Description |
+|---|---|
+| `npm run build` | TypeScript + Vite + génération `dist/sw.js` |
+| `npm run test` | 104 tests unitaires Vitest |
+| `npm run validate:pwa` | 14 contrôles sur `dist/` (manifest, icônes, sw, base path…) |
+| `npm run lint` | ESLint TypeScript + react-hooks + react-refresh |
+
+Le script `scripts/validate-pwa.mjs` utilise uniquement les modules Node natifs (fs, path, zlib).
+Le template `.github/PULL_REQUEST_TEMPLATE.md` est chargé automatiquement à la création de PR.
+
+---
+
 ## Roadmap
 
 | Priorité | Tâche |
 |---|---|
-| 1 | Tests unitaires — sérialiseurs (parser GEDCOM, calendrier républicain, Sosa/Aboville couverts) |
+| 1 | Tests unitaires — sérialiseurs GEDCOM (parser, calendrier républicain, Sosa/Aboville couverts) |
 | 2 | Favoris & récents, long-press, haptique, transitions slide mobile |
 | 3 | Accessibilité — audit clavier/ARIA des modales, sheets et graphe |
