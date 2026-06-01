@@ -235,6 +235,7 @@ Tous les résultats sont mis en cache dans `localStorage`.
 **⚠️ Clés API** : stockées côté client dans `localStorage`. Pas de backend — choix assumé.
 **⚠️ Ollama en prod** : bloqué par le navigateur depuis un site HTTPS (mixed content).
 Un avertissement est affiché dans le panneau Paramètres. Usage local uniquement (`npm run dev`).
+À proxifier ultérieurement via une Netlify Function.
 
 ---
 
@@ -248,8 +249,10 @@ Stratégie : repo unique, branche `deploy/netlify`, application 100 % statique.
 | Commande build | `npm run build` → `dist/` |
 | Node version | 20 |
 | Redirects | `/* → /index.html` (SPA) |
-| Cache | `Cache-Control: no-cache` sur `sw.js` et `index.html` |
+| Cache SW | `Cache-Control: no-cache` sur `sw.js` et `index.html` |
 | `base` Vite | non défini (sert à `/`) |
+| Ollama en prod | inopérant (mixed content HTTPS→HTTP) |
+| Clés IA | côté client pour l'instant — à proxifier via Netlify Function |
 
 ---
 
@@ -285,6 +288,6 @@ Le template `.github/PULL_REQUEST_TEMPLATE.md` est chargé automatiquement à la
 
 | Priorité | Tâche |
 |---|---|
-| 1 | Icônes PWA définitives (remplacer les placeholders solid-color par les vraies icônes) |
+| 1 | Tests unitaires — sérialiseurs GEDCOM (parser, calendrier républicain, Sosa/Aboville couverts) |
 | 2 | Favoris & récents, long-press, haptique, transitions slide mobile |
 | 3 | Accessibilité — audit clavier/ARIA des modales, sheets et graphe |

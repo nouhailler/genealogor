@@ -15,15 +15,19 @@ Format : [SemVer](https://semver.org) · Dates ISO 8601
   modules Node natifs uniquement, aucun appel réseau
 - `npm run validate:pwa` : lanceur du script
 - `.github/PULL_REQUEST_TEMPLATE.md` : checklist de validation post-déploiement (7 sections)
-- `public/icons/icon-192.png` + `icon-512.png` : icônes PNG placeholder pour installabilité PWA
+
+### Ajouté — Icône PWA
+- `public/icons/icon-192.png` + `icon-512.png` + variantes maskable : arbre généalogique
+  3 générations, fond violet dégradé, étoile dorée sur le nœud racine
+- `public/apple-touch-icon.png` : icône iOS 180×180
+- `public/favicon.ico` : favicon 32×32
+- `index.html` : balises `apple-touch-icon`, `theme-color`, titre et `lang="fr"`
+- `vite.config.ts` : `theme_color`/`background_color` violet, 4 entrées d'icônes (any + maskable)
 
 ### Ajouté — Tests unitaires
-- `src/lib/gedcom-parser.test.ts` : 30 cas (entrées invalides, noms, dates, qualificatifs,
-  familles, CONT/CONC, BOM UTF-8, CRLF Windows)
-- `src/lib/republican-calendar.test.ts` : 36 cas (bornes de période, dates historiques de
-  référence — Thermidor, 18 Brumaire —, jours complémentaires, années sextiles)
-- `src/lib/sosa-aboville.test.ts` : 38 cas (numérotation Sosa père/mère, implexe, endogamie,
-  Aboville tri/maxGen/dédup, findDeadBranches, espérance de vie par cohorte)
+- `src/lib/gedcom-parser.test.ts` : 30 cas
+- `src/lib/republican-calendar.test.ts` : 36 cas (dont années sextiles)
+- `src/lib/sosa-aboville.test.ts` : 38 cas
 
 ### Ajouté — Fournisseurs IA
 - Fournisseur **Claude (Anthropic)** : implémentation réelle via
@@ -32,13 +36,11 @@ Format : [SemVer](https://semver.org) · Dates ISO 8601
 - Fournisseur **ChatGPT (OpenAI)** : `POST https://api.openai.com/v1/chat/completions`,
   modèle par défaut `gpt-4o-mini`, support vision multimodal
 - Menu Paramètres refondu : sélecteur 4 fournisseurs (Claude / ChatGPT / OpenRouter / Ollama),
-  champs conditionnels (clé API + modèle pour les providers cloud, URL + modèle pour Ollama),
-  avertissement mixed-content HTTPS pour Ollama, note de confidentialité localStorage
+  champs conditionnels, avertissement mixed-content HTTPS pour Ollama
 
 ### Modifié
 - `src/components/views/SettingsPanel.tsx` : `ProviderId` union
-  `'claude' | 'openai' | 'openrouter' | 'ollama'` ; `aiCall` et `aiCallMultimodal` couvrent
-  les 4 fournisseurs
+  `'claude' | 'openai' | 'openrouter' | 'ollama'`
 - `package.json` : scripts `test`, `test:watch`, `validate:pwa` ajoutés
 
 ---
