@@ -6,6 +6,7 @@ import { shouldMask } from '@/lib/privacy';
 import BusinessCard from '@/components/views/BusinessCard';
 import PresentationMode from '@/components/views/PresentationMode';
 import BiographyPanel from '@/components/views/BiographyPanel';
+import EditPersonModal from '@/components/views/EditPersonModal';
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -197,12 +198,14 @@ interface Props {
   individuals: Map<string, Individual>;
   families: Map<string, Family>;
   onSelect?: (id: string) => void;
+  onEditPerson?: (updated: Individual) => void;
 }
 
-export default function ProfileView({ person, individuals, families, onSelect }: Props) {
+export default function ProfileView({ person, individuals, families, onSelect, onEditPerson }: Props) {
   const [factCounts, setFactCounts] = useState<Record<string, number>>({});
   const [showCard, setShowCard]           = useState(false);
   const [showPresentation, setShowPresentation] = useState(false);
+  const [showEdit, setShowEdit]           = useState(false);
 
   useEffect(() => {
     setFactCounts({});
@@ -273,6 +276,13 @@ export default function ProfileView({ person, individuals, families, onSelect }:
           </div>
           {/* Action buttons */}
           <div className="flex items-center gap-1 shrink-0">
+            {onEditPerson && (
+              <button onClick={() => setShowEdit(true)}
+                className="h-8 px-2 rounded text-[var(--ink-faint)] hover:text-[var(--ink)] hover:bg-[var(--surface-hover)]"
+                title="Modifier la fiche">
+                <Icon.Pencil className="size-4" />
+              </button>
+            )}
             <button onClick={() => setShowPresentation(true)}
               className="h-8 px-2 rounded text-[var(--ink-faint)] hover:text-[var(--ink)] hover:bg-[var(--surface-hover)] text-xs font-mono"
               title="Mode présentation (plein écran)">
@@ -288,6 +298,13 @@ export default function ProfileView({ person, individuals, families, onSelect }:
       </div>
 
       {/* Modals */}
+      {showEdit && onEditPerson && (
+        <EditPersonModal
+          person={person}
+          onSave={(updated) => { onEditPerson(updated); setShowEdit(false); }}
+          onClose={() => setShowEdit(false)}
+        />
+      )}
       {showCard && (
         <BusinessCard
           person={person}

@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import type { Dataset, Family, GenealogyData, Individual, TabId } from '@/types/genealogy';
 import { parse as parseGedcom } from '@/lib/gedcom-parser';
 import { importCSV } from '@/lib/csv-importer';
+import { serialize } from '@/lib/gedcom-serializer';
 import { usePrivacy, shouldMask } from '@/lib/privacy';
 import { search as ftSearch } from '@/lib/fulltext-search';
 import { Icon } from '@/components/ui-kit';
@@ -258,6 +259,16 @@ export default function App() {
     setParsing(false);
   }, [navigateTo]);
 
+  const handleEditPerson = useCallback((updated: Individual) => {
+    setDatasets(prev => prev.map(ds => {
+      if (!ds.individuals.has(updated.id)) return ds;
+      const individuals = new Map(ds.individuals);
+      individuals.set(updated.id, updated);
+      const rawText = serialize(individuals, ds.families);
+      return { ...ds, individuals, rawText };
+    }));
+  }, []);
+
   const filteredIndividuals = useMemo(() => {
     const all = Array.from(merged.individuals.values());
     let base: Individual[];
@@ -429,7 +440,7 @@ export default function App() {
                 <span className="text-sm">Sélectionnez un individu dans la liste</span>
               </div>
             ) : (
-              <ViewRouter tab={activeTab} person={selectedPerson} data={merged} onNavigate={navigateTo} isPrivate={isPrivate} />
+              <ViewRouter tab={activeTab} person={selectedPerson} data={merged} onNavigate={navigateTo} isPrivate={isPrivate} onEditPerson={handleEditPerson} />
             )}
           </div>
         </main>
@@ -489,13 +500,14 @@ interface ViewRouterProps {
   data: GenealogyData;
   onNavigate: (id: string) => void;
   isPrivate: (p: Individual | null | undefined) => boolean;
+  onEditPerson: (updated: Individual) => void;
 }
 
-function ViewRouter({ tab, person, data, onNavigate }: ViewRouterProps) {
+function ViewRouter({ tab, person, data, onNavigate, onEditPerson }: ViewRouterProps) {
   const { individuals, families } = data;
 
   if (tab === 'profile') {
-    return <ProfileView person={person} individuals={individuals} families={families} onSelect={onNavigate} />;
+    return <ProfileView person={person} individuals={individuals} families={families} onSelect={onNavigate} onEditPerson={onEditPerson} />;
   }
   if (tab === 'ancestors') {
     return <AncestorsView person={person} individuals={individuals} families={families} onSelect={onNavigate} />;
