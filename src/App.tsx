@@ -26,6 +26,7 @@ import ValidationView from '@/components/views/ValidationView';
 import AiLabView from '@/components/views/AiLabView';
 import MediaGallery from '@/components/views/MediaGallery';
 import SettingsPanel from '@/components/views/SettingsPanel';
+import PassphraseScreen from '@/components/PassphraseScreen';
 
 const STORAGE_KEYS = {
   DATASETS:    'genealogor.savedDatasets',
@@ -95,6 +96,13 @@ export default function App() {
   const [parsing, setParsing] = useState(false);
   const [parseErrors, setParseErrors] = useState<string[]>([]);
 
+  // Preloaded-dataset state (URL param ?dataset=demo|famille)
+  const datasetParam = useMemo(() => new URLSearchParams(window.location.search).get('dataset') ?? '', []);
+  const [encryptedBuffer, setEncryptedBuffer] = useState<ArrayBuffer | null>(null);
+  const [showPassphrase, setShowPassphrase] = useState(false);
+  const [passphraseError, setPassphraseError] = useState<string | null>(null);
+  const [passphraseLoading, setPassphraseLoading] = useState(false);
+
   const merged = useMemo(() => mergeDatasets(datasets), [datasets]);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -133,6 +141,40 @@ export default function App() {
     } catch { /* ignore corrupted data */ }
     setRestoring(false);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-load preloaded datasets from URL param ?dataset=demo|famille
+  // Runs only once, after session restore, and only if no session was restored.
+  useEffect(() => {
+    if (restoring) return;                 // wait for restore to finish
+    if (datasets.length > 0) return;       // session already loaded — skip
+    if (!datasetParam) return;             // no URL param — skip
+
+    if (datasetParam === 'demo') {
+      setParsing(true);
+      fetch('/data/demo.ged')
+        .then(r => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.text();
+        })
+        .then(text => {
+          const data = parseGedcom(text);
+          setDatasets([{ ...data, fileName: 'demo.ged', prefix: 'DMO', rawText: text }]);
+          const firstId = Array.from(data.individuals.keys())[0];
+          if (firstId) { navStack.current = [firstId]; navIdx.current = 0; setSelectedId(firstId); }
+        })
+        .catch(err => setParseErrors([`Impossible de charger demo.ged : ${err.message}`]))
+        .finally(() => setParsing(false));
+    } else if (datasetParam === 'famille') {
+      fetch('/data/famille.ged.enc')
+        .then(r => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.arrayBuffer();
+        })
+        .then(buf => { setEncryptedBuffer(buf); setShowPassphrase(true); })
+        .catch(err => setParseErrors([`Impossible de charger famille.ged.enc : ${err.message}`]));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restoring]);
 
   // Persist datasets whenever they change
   useEffect(() => {
@@ -259,6 +301,40 @@ export default function App() {
     setParsing(false);
   }, [navigateTo]);
 
+  const handleDecrypt = useCallback(async (passphrase: string) => {
+    if (!encryptedBuffer) return;
+    setPassphraseLoading(true);
+    setPassphraseError(null);
+    try {
+      const enc = new TextEncoder();
+      const salt       = encryptedBuffer.slice(0, 16);
+      const iv         = encryptedBuffer.slice(16, 28);
+      const ciphertext = encryptedBuffer.slice(28);
+      const keyMaterial = await crypto.subtle.importKey(
+        'raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey'],
+      );
+      const key = await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', hash: 'SHA-256', iterations: 250_000, salt },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['decrypt'],
+      );
+      const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+      const gedText = new TextDecoder().decode(decrypted);
+      const data = parseGedcom(gedText);
+      setDatasets([{ ...data, fileName: 'famille.ged', prefix: 'FAM', rawText: gedText }]);
+      const firstId = Array.from(data.individuals.keys())[0];
+      if (firstId) { navStack.current = [firstId]; navIdx.current = 0; setSelectedId(firstId); }
+      setShowPassphrase(false);
+      setEncryptedBuffer(null);
+    } catch {
+      setPassphraseError('Phrase secrète incorrecte. Veuillez réessayer.');
+    } finally {
+      setPassphraseLoading(false);
+    }
+  }, [encryptedBuffer]);
+
   const handleEditPerson = useCallback((updated: Individual) => {
     setDatasets(prev => prev.map(ds => {
       if (!ds.individuals.has(updated.id)) return ds;
@@ -287,6 +363,18 @@ export default function App() {
   }, [merged.individuals, query, useFullText, advFilter]);
 
   const selectedPerson = selectedId ? merged.individuals.get(selectedId) ?? null : null;
+
+  // Passphrase screen for ?dataset=famille
+  if (showPassphrase) {
+    return (
+      <PassphraseScreen
+        onDecrypt={handleDecrypt}
+        onCancel={() => { setShowPassphrase(false); setEncryptedBuffer(null); setPassphraseError(null); }}
+        error={passphraseError}
+        loading={passphraseLoading}
+      />
+    );
+  }
 
   // Upload screen
   if (datasets.length === 0) {

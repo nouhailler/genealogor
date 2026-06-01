@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "validate:pwa": "node scripts/validate-pwa.mjs",
+    "encrypt:gedcom": "node scripts/encrypt-gedcom.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },
