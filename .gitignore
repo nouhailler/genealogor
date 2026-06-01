@@ -23,3 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 playwright
+
+# Local Netlify folder
+.netlify
+
+# Données généalogiques privées en clair — ne jamais committer
+*.ged
+!public/data/demo.ged

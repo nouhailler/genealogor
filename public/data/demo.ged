@@ -1,0 +1,224 @@
+0 HEAD
+1 SOUR Genealogor
+2 VERS 0.6
+2 NAME Genealogor
+1 DEST ANY
+1 DATE 01 JUN 2026
+1 CHAR UTF-8
+1 GEDC
+2 VERS 5.5.1
+2 FORM LINEAGE-LINKED
+0 @I1@ INDI
+1 NAME Émile /Bertrand/
+2 GIVN Émile
+2 SURN Bertrand
+1 SEX M
+1 BIRT
+2 DATE 14 JUL 1851
+2 PLAC Bordeaux, Gironde, France
+1 DEAT
+2 DATE 22 MAR 1921
+2 PLAC Bordeaux, Gironde, France
+1 OCCU Tonnelier
+1 FAMS @F1@
+0 @I2@ INDI
+1 NAME Marguerite /Faure/
+2 GIVN Marguerite
+2 SURN Faure
+1 SEX F
+1 BIRT
+2 DATE 3 FEB 1855
+2 PLAC Périgueux, Dordogne, France
+1 DEAT
+2 DATE 11 NOV 1930
+2 PLAC Bordeaux, Gironde, France
+1 FAMS @F1@
+0 @I3@ INDI
+1 NAME Henri /Bertrand/
+2 GIVN Henri
+2 SURN Bertrand
+1 SEX M
+1 BIRT
+2 DATE 20 APR 1878
+2 PLAC Bordeaux, Gironde, France
+1 DEAT
+2 DATE 5 SEP 1944
+2 PLAC Toulouse, Haute-Garonne, France
+1 OCCU Instituteur
+1 FAMC @F1@
+1 FAMS @F2@
+0 @I4@ INDI
+1 NAME Louise /Bertrand/
+2 GIVN Louise
+2 SURN Bertrand
+1 SEX F
+1 BIRT
+2 DATE 8 DEC 1882
+2 PLAC Bordeaux, Gironde, France
+1 DEAT
+2 DATE 19 MAR 1960
+2 PLAC Bordeaux, Gironde, France
+1 FAMC @F1@
+1 FAMS @F3@
+0 @I5@ INDI
+1 NAME Renée /Morel/
+2 GIVN Renée
+2 SURN Morel
+1 SEX F
+1 BIRT
+2 DATE 2 JUN 1882
+2 PLAC Agen, Lot-et-Garonne, France
+1 DEAT
+2 DATE 14 JAN 1958
+2 PLAC Toulouse, Haute-Garonne, France
+1 FAMS @F2@
+0 @I6@ INDI
+1 NAME Albert /Castaing/
+2 GIVN Albert
+2 SURN Castaing
+1 SEX M
+1 BIRT
+2 DATE 17 OCT 1879
+2 PLAC Bayonne, Pyrénées-Atlantiques, France
+1 DEAT
+2 DATE 30 JUN 1952
+2 PLAC Bordeaux, Gironde, France
+1 OCCU Négociant en vins
+1 FAMS @F3@
+0 @I7@ INDI
+1 NAME Paul /Bertrand/
+2 GIVN Paul
+2 SURN Bertrand
+1 SEX M
+1 BIRT
+2 DATE 15 MAR 1905
+2 PLAC Toulouse, Haute-Garonne, France
+1 DEAT
+2 DATE 28 FEB 1986
+2 PLAC Paris, France
+1 OCCU Ingénieur
+1 FAMC @F2@
+1 FAMS @F4@
+0 @I8@ INDI
+1 NAME Suzanne /Bertrand/
+2 GIVN Suzanne
+2 SURN Bertrand
+1 SEX F
+1 BIRT
+2 DATE 3 SEP 1907
+2 PLAC Toulouse, Haute-Garonne, France
+1 FAMC @F2@
+0 @I9@ INDI
+1 NAME Jacques /Castaing/
+2 GIVN Jacques
+2 SURN Castaing
+1 SEX M
+1 BIRT
+2 DATE 22 JAN 1910
+2 PLAC Bordeaux, Gironde, France
+1 DEAT
+2 DATE 7 DEC 1943
+2 PLAC Stalag XVII-B, Autriche
+1 NOTE Mort en captivité pendant la Seconde Guerre mondiale.
+1 FAMC @F3@
+0 @I10@ INDI
+1 NAME Hélène /Castaing/
+2 GIVN Hélène
+2 SURN Castaing
+1 SEX F
+1 BIRT
+2 DATE 4 MAY 1912
+2 PLAC Bordeaux, Gironde, France
+1 FAMC @F3@
+1 FAMS @F5@
+0 @I11@ INDI
+1 NAME Yvonne /Dupuis/
+2 GIVN Yvonne
+2 SURN Dupuis
+1 SEX F
+1 BIRT
+2 DATE 12 NOV 1910
+2 PLAC Lyon, Rhône, France
+1 DEAT
+2 DATE 3 MAR 1999
+2 PLAC Paris, France
+1 FAMS @F4@
+0 @I12@ INDI
+1 NAME Robert /Arnaud/
+2 GIVN Robert
+2 SURN Arnaud
+1 SEX M
+1 BIRT
+2 DATE 8 AUG 1908
+2 PLAC Montpellier, Hérault, France
+1 DEAT
+2 DATE 14 FEB 1977
+2 PLAC Bordeaux, Gironde, France
+1 FAMS @F5@
+0 @I13@ INDI
+1 NAME Claire /Bertrand/
+2 GIVN Claire
+2 SURN Bertrand
+1 SEX F
+1 BIRT
+2 DATE 6 OCT 1936
+2 PLAC Paris, France
+1 FAMC @F4@
+0 @I14@ INDI
+1 NAME Michel /Bertrand/
+2 GIVN Michel
+2 SURN Bertrand
+1 SEX M
+1 BIRT
+2 DATE 18 JUL 1939
+2 PLAC Paris, France
+1 FAMC @F4@
+0 @I15@ INDI
+1 NAME Françoise /Arnaud/
+2 GIVN Françoise
+2 SURN Arnaud
+1 SEX F
+1 BIRT
+2 DATE 25 DEC 1942
+2 PLAC Bordeaux, Gironde, France
+1 FAMC @F5@
+0 @F1@ FAM
+1 HUSB @I1@
+1 WIFE @I2@
+1 CHIL @I3@
+1 CHIL @I4@
+1 MARR
+2 DATE 12 OCT 1875
+2 PLAC Bordeaux, Gironde, France
+0 @F2@ FAM
+1 HUSB @I3@
+1 WIFE @I5@
+1 CHIL @I7@
+1 CHIL @I8@
+1 MARR
+2 DATE 20 JUN 1903
+2 PLAC Toulouse, Haute-Garonne, France
+0 @F3@ FAM
+1 HUSB @I6@
+1 WIFE @I4@
+1 CHIL @I9@
+1 CHIL @I10@
+1 MARR
+2 DATE 14 FEB 1908
+2 PLAC Bordeaux, Gironde, France
+0 @F4@ FAM
+1 HUSB @I7@
+1 WIFE @I11@
+1 CHIL @I13@
+1 CHIL @I14@
+1 MARR
+2 DATE 9 SEP 1933
+2 PLAC Paris, France
+0 @F5@ FAM
+1 HUSB @I12@
+1 WIFE @I10@
+1 CHIL @I15@
+1 MARR
+2 DATE 3 APR 1940
+2 PLAC Bordeaux, Gironde, France
+0 TRLR

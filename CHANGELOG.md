@@ -4,6 +4,29 @@ Format : [SemVer](https://semver.org) · Dates ISO 8601
 
 ---
 
+## [Unreleased] — 2026-06-01
+
+### Ajouté — Jeux de données pré-chargeables
+
+- **Mode démo** `?dataset=demo` : charge `public/data/demo.ged` (famille Bertrand fictive,
+  4 générations, lieux français) via `fetch` → pipeline GEDCOM existant
+- **Mode famille** `?dataset=famille` : charge `public/data/famille.ged.enc` (GEDCOM chiffré),
+  affiche un écran de saisie de passphrase, déchiffre dans le navigateur via Web Crypto,
+  injecte dans le pipeline GEDCOM existant
+- `src/components/PassphraseScreen.tsx` : composant React (Tailwind v4), champ password,
+  bouton Accéder, gestion d'erreur, note de confidentialité
+- `scripts/encrypt-gedcom.mjs` : chiffrement local PBKDF2/SHA-256/250 000 iter + AES-GCM-256 ;
+  passphrase via `GEDCOM_PASSPHRASE` ou saisie masquée — jamais en argument CLI
+- `public/data/demo.ged` : GEDCOM 5.5.1 fictif (famille Bertrand, 15 individus, 5 familles)
+- `public/data/famille.ged.enc` : placeholder chiffré avec passphrase `demo-passphrase`
+  (à remplacer par vos vraies données)
+- `npm run encrypt:gedcom` : lanceur du script de chiffrement
+- **Session prioritaire** : si une session est déjà restaurée depuis localStorage,
+  l'auto-chargement URL est ignoré
+- `.gitignore` : `*.ged` ignoré sauf `public/data/demo.ged`
+
+---
+
 ## [Unreleased] — 2026-05-31
 
 ### Ajouté — Qualité & déploiement
