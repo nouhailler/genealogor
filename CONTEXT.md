@@ -284,6 +284,40 @@ Le template `.github/PULL_REQUEST_TEMPLATE.md` est chargé automatiquement à la
 
 ---
 
+## Jeux de données pré-chargeables
+
+### Mode démo — `?dataset=demo`
+
+Charge `public/data/demo.ged` (GEDCOM en clair, committable) via `fetch` → parser GEDCOM existant.
+
+### Mode famille — `?dataset=famille`
+
+Charge `public/data/famille.ged.enc` (binaire chiffré, committable) et affiche `PassphraseScreen`.
+Déchiffrement **100 % côté navigateur** via Web Crypto API native (`crypto.subtle`).
+
+**Paramètres crypto** (identiques Node ↔ navigateur) :
+- Dérivation de clé : PBKDF2 / SHA-256 / 250 000 itérations / sel aléatoire 16 octets
+- Chiffrement : AES-GCM 256 bits / nonce aléatoire 12 octets
+- Format binaire : `[ sel : 16 o ][ IV : 12 o ][ texte chiffré + tag GCM ]`
+
+### Chiffrer vos données familiales
+
+```bash
+GEDCOM_PASSPHRASE="votre-phrase-secrète" npm run encrypt:gedcom -- mes-donnees.ged
+# Sortie par défaut : public/data/famille.ged.enc
+```
+
+### Limites et avertissements
+
+| Sujet | Note |
+|---|---|
+| **Révocation** | La passphrase est partagée (pas d'utilisateurs individuels). Pour révoquer l'accès : changer la passphrase, re-chiffrer, redéployer. |
+| **Persistance localStorage** | Après déchiffrement, les données sont persitées dans `localStorage` par la logique de session existante (acceptable en usage familial — à connaître). |
+| **Service Worker** | `demo.ged` et `famille.ged.enc` ne sont **pas** pré-cachés par le SW (chargés au runtime via `fetch`). La config PWA n'est pas modifiée. |
+| **Sécurité de la passphrase** | Ne jamais passer la passphrase en argument CLI (historique shell). Utiliser `GEDCOM_PASSPHRASE` ou la saisie masquée. |
+
+---
+
 ## Roadmap
 
 | Priorité | Tâche |
