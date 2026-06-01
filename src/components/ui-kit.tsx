@@ -34,6 +34,8 @@ export const Icon = {
   Share:         (p: IconProps) => <svg {...base} {...p}><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>,
   Lock:          (p: IconProps) => <svg {...base} {...p}><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
   Paperclip:     (p: IconProps) => <svg {...base} {...p}><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>,
+  Pencil:        (p: IconProps) => <svg {...base} {...p}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+  Check:         (p: IconProps) => <svg {...base} {...p}><polyline points="20 6 9 17 4 12"/></svg>,
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
