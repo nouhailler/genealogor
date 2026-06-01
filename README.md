@@ -15,7 +15,7 @@
 
 | Vue | Description |
 |-----|-------------|
-| 👤 **Profil** | Fiche détaillée : vitaux, profession, famille, pièces jointes, biographie IA |
+| 👤 **Profil** | Fiche détaillée : vitaux, profession, famille, pièces jointes, biographie IA — **édition in-app** (nom, dates, lieu, profession, note) |
 | 🌲 **Ascendants** | Éventail Sosa, pedigree rectangulaire (7 générations), sablier |
 | 🔽 **Descendants** | Arbre repliable avec numérotation d'Aboville |
 | ⏳ **Frise** | Chronologie par décennie avec contexte historique |
@@ -63,6 +63,20 @@ npm run preview
 
 Ouvrez `http://localhost:5173`, importez un fichier `.ged` ou `.csv`, ou utilisez les **données d'exemple** intégrées.
 
+### Jeux de données pré-chargeables
+
+| URL | Description |
+|-----|-------------|
+| `/?dataset=demo` | Charge la famille Bertrand fictive (15 individus, 4 générations) |
+| `/?dataset=famille` | Charge `famille.ged.enc` après saisie de la phrase secrète — déchiffrement AES-GCM dans le navigateur |
+
+Pour chiffrer vos propres données familiales :
+
+```bash
+GEDCOM_PASSPHRASE="votre-phrase-secrète" npm run encrypt:gedcom -- mon-arbre.ged
+# → public/data/famille.ged.enc
+```
+
 ---
 
 ## 🏗️ Stack technique
@@ -76,6 +90,7 @@ Ouvrez `http://localhost:5173`, importez un fichier `.ged` ou `.csv`, ou utilise
 | Graphe | [D3 v7](https://d3js.org) (d3-force) |
 | Recherche | [MiniSearch](https://lucaong.github.io/minisearch/) |
 | PWA | [vite-plugin-pwa](https://vite-pwa-org.netlify.app) (Workbox) |
+| Chiffrement | Web Crypto API native (PBKDF2 + AES-GCM-256) — zéro dépendance |
 | Persistance | `localStorage` + `IndexedDB` (pièces jointes) |
 | Tests | [Vitest 4](https://vitest.dev) — 104 tests unitaires |
 
@@ -98,11 +113,16 @@ src/
 │   ├── archives-templates.ts # 97 URLs d'archives départementales
 │   └── ...
 ├── components/
-│   ├── views/               # 13 vues (une par onglet)
+│   ├── views/               # 13 vues (une par onglet) + EditPersonModal
 │   ├── mobile/              # MobileShell, MobileOnboarding
-│   ├── media/               # AttachmentDetail, AttachmentsSection
+│   ├── PassphraseScreen.tsx # Écran de déchiffrement (mode famille)
 │   └── ui-kit.tsx           # Icônes SVG + helpers partagés
-└── styles/tokens.css        # Variables CSS oklch (light/dark)
+├── styles/tokens.css        # Variables CSS oklch (light/dark)
+public/
+├── data/
+│   ├── demo.ged             # Famille fictive (démo publique)
+│   └── famille.ged.enc      # GEDCOM chiffré AES-GCM (données privées)
+└── icons/                   # Icônes PWA (192/512, any + maskable)
 ```
 
 ### Modèle de données GEDCOM
@@ -165,9 +185,9 @@ détection de doublons sémantiques. Tous les résultats sont mis en cache dans 
 
 ## 📋 Roadmap
 
-- [ ] Icônes PWA définitives (remplacer les placeholders par les vraies icônes)
 - [ ] Favoris & récents, long-press, haptique, transitions slide mobile
 - [ ] Accessibilité — audit clavier/ARIA des modales, sheets et graphe
+- [ ] Netlify Function proxy pour Ollama en production
 
 ---
 

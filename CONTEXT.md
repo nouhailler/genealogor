@@ -46,14 +46,22 @@ TypeScript, déployée sur Netlify. Le dossier `prototype/` est conservé unique
 └── PULL_REQUEST_TEMPLATE.md   # Checklist de validation post-déploiement (7 sections)
 
 scripts/
-└── validate-pwa.mjs           # Validation build PWA — 14 contrôles, modules Node natifs
+├── validate-pwa.mjs           # Validation build PWA — 14 contrôles, modules Node natifs
+└── encrypt-gedcom.mjs         # Chiffrement GEDCOM local (PBKDF2 + AES-GCM-256)
 
 public/
-├── favicon.svg
-├── icons.svg
-└── icons/
-    ├── icon-192.png            # PWA icon 192×192
-    └── icon-512.png            # PWA icon 512×512 (maskable)
+├── favicon.svg                # Logo Genealogor (éclair violet)
+├── favicon.ico                # Favicon 32×32
+├── apple-touch-icon.png       # Icône iOS 180×180
+├── icon-source.svg            # Source SVG de l'icône PWA (arbre généalogique)
+├── icons/
+│   ├── icon-192.png           # PWA icon 192×192 (any)
+│   ├── icon-512.png           # PWA icon 512×512 (any)
+│   ├── icon-192-maskable.png  # PWA icon 192×192 (maskable, fond opaque)
+│   └── icon-512-maskable.png  # PWA icon 512×512 (maskable, fond opaque)
+└── data/
+    ├── demo.ged               # GEDCOM fictif public (famille Bertrand, 15 individus)
+    └── famille.ged.enc        # GEDCOM familial chiffré AES-GCM (binaire)
 
 src/
 ├── App.tsx                    # Shell : état global, routing par onglets, session localStorage
@@ -81,6 +89,7 @@ src/
 ├── components/
 │   ├── views/                 # 13 vues — une par TabId
 │   │   ├── ProfileView.tsx
+│   │   ├── EditPersonModal.tsx # Édition in-app : nom, sexe, dates, lieu, profession, note
 │   │   ├── AncestorsView.tsx  # + PedigreeChart.tsx + HourglassView.tsx
 │   │   ├── DescendantsView.tsx
 │   │   ├── ImplexView.tsx
@@ -104,6 +113,7 @@ src/
 │   ├── media/
 │   │   ├── AttachmentDetail.tsx
 │   │   └── AttachmentsSection.tsx
+│   ├── PassphraseScreen.tsx   # Écran de saisie passphrase (mode ?dataset=famille)
 │   ├── ui-kit.tsx             # Icon, formatVital, sexLabel…
 │   ├── AdvancedSearch.tsx
 │   ├── UploadZone.tsx
@@ -205,6 +215,8 @@ Toujours utiliser `var(--token)` — ne jamais coder une couleur en dur.
 - **Masque vivants** (`Privacy`) : `filter: blur` sur personnes sans date de décès nées après `année-100`.
 - **Citations par fait** : pièces jointes liées à un `factKind` (birth/marriage/death/…).
 - **Export** : CSV et GEDCOM depuis la barre de liste ; GEDCOM 5.5.1 et 7.0 depuis le sérialiseur.
+- **Édition in-app** : bouton crayon dans `ProfileView` → `EditPersonModal` (nom, sexe, naissance, décès, profession, note) ; sauvegarde dans le dataset + re-sérialisation GEDCOM → persist localStorage.
+- **Datasets pré-chargeables** : `?dataset=demo` (fetch + parse) et `?dataset=famille` (fetch + déchiffrement Web Crypto + parse) — session existante prioritaire.
 
 ## Comportements non encore implémentés
 
@@ -278,6 +290,7 @@ Config : `vitest.config.ts` (séparé de `vite.config.ts` pour ne pas polluer le
 | `npm run test` | 104 tests unitaires Vitest |
 | `npm run validate:pwa` | 14 contrôles sur `dist/` (manifest, icônes, sw, base path…) |
 | `npm run lint` | ESLint TypeScript + react-hooks + react-refresh |
+| `npm run encrypt:gedcom` | Chiffre un GEDCOM → `public/data/famille.ged.enc` |
 
 Le script `scripts/validate-pwa.mjs` utilise uniquement les modules Node natifs (fs, path, zlib).
 Le template `.github/PULL_REQUEST_TEMPLATE.md` est chargé automatiquement à la création de PR.
@@ -322,6 +335,6 @@ GEDCOM_PASSPHRASE="votre-phrase-secrète" npm run encrypt:gedcom -- mes-donnees.
 
 | Priorité | Tâche |
 |---|---|
-| 1 | Tests unitaires — sérialiseurs GEDCOM (parser, calendrier républicain, Sosa/Aboville couverts) |
-| 2 | Favoris & récents, long-press, haptique, transitions slide mobile |
-| 3 | Accessibilité — audit clavier/ARIA des modales, sheets et graphe |
+| 1 | Favoris & récents, long-press, haptique, transitions slide mobile |
+| 2 | Accessibilité — audit clavier/ARIA des modales, sheets et graphe |
+| 3 | Netlify Function proxy pour Ollama (mixed-content HTTPS→HTTP) |

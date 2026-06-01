@@ -4,67 +4,51 @@ Format : [SemVer](https://semver.org) · Dates ISO 8601
 
 ---
 
-## [Unreleased] — 2026-06-01
+## [0.3.0] — 2026-06-01
 
 ### Ajouté — Jeux de données pré-chargeables
-
 - **Mode démo** `?dataset=demo` : charge `public/data/demo.ged` (famille Bertrand fictive,
-  4 générations, lieux français) via `fetch` → pipeline GEDCOM existant
+  4 générations, 15 individus, lieux français) via `fetch` → pipeline GEDCOM existant
 - **Mode famille** `?dataset=famille` : charge `public/data/famille.ged.enc` (GEDCOM chiffré),
-  affiche un écran de saisie de passphrase, déchiffre dans le navigateur via Web Crypto,
-  injecte dans le pipeline GEDCOM existant
-- `src/components/PassphraseScreen.tsx` : composant React (Tailwind v4), champ password,
-  bouton Accéder, gestion d'erreur, note de confidentialité
-- `scripts/encrypt-gedcom.mjs` : chiffrement local PBKDF2/SHA-256/250 000 iter + AES-GCM-256 ;
+  affiche `PassphraseScreen`, déchiffre dans le navigateur via Web Crypto, injecte dans le
+  pipeline GEDCOM existant
+- `src/components/PassphraseScreen.tsx` : champ password, bouton Accéder, gestion d'erreur,
+  note de confidentialité « rien n'est envoyé à un serveur »
+- `scripts/encrypt-gedcom.mjs` : PBKDF2/SHA-256/250 000 iter + AES-GCM-256 ;
   passphrase via `GEDCOM_PASSPHRASE` ou saisie masquée — jamais en argument CLI
-- `public/data/demo.ged` : GEDCOM 5.5.1 fictif (famille Bertrand, 15 individus, 5 familles)
-- `public/data/famille.ged.enc` : placeholder chiffré avec passphrase `demo-passphrase`
-  (à remplacer par vos vraies données)
+- `public/data/demo.ged` : GEDCOM 5.5.1 fictif (famille Bertrand, 5 familles)
+- `public/data/famille.ged.enc` : GEDCOM familial chiffré (binaire committable)
 - `npm run encrypt:gedcom` : lanceur du script de chiffrement
-- **Session prioritaire** : si une session est déjà restaurée depuis localStorage,
-  l'auto-chargement URL est ignoré
+- **Session prioritaire** : session localStorage existante prime sur l'auto-chargement URL
 - `.gitignore` : `*.ged` ignoré sauf `public/data/demo.ged`
 
----
-
-## [Unreleased] — 2026-05-31
-
-### Ajouté — Qualité & déploiement
-- `netlify.toml` : déploiement Netlify (SPA redirect `/*`, cache-control no-cache sur `sw.js`
-  et `index.html`, Node 20, base Vite à `/`)
-- `vitest.config.ts` : configuration Vitest séparée de `vite.config.ts`
-- `npm run test` / `npm run test:watch` : 104 tests unitaires
-- `scripts/validate-pwa.mjs` : 14 contrôles sur `dist/` (manifest, icônes, sw.js, base path) —
-  modules Node natifs uniquement, aucun appel réseau
-- `npm run validate:pwa` : lanceur du script
-- `.github/PULL_REQUEST_TEMPLATE.md` : checklist de validation post-déploiement (7 sections)
+### Ajouté — Édition in-app
+- `src/components/views/EditPersonModal.tsx` : modal d'édition — prénom/nom, sexe,
+  naissance (jour+mois+année+lieu), décès, profession, note
+- Bouton crayon dans l'en-tête de `ProfileView` ; sauvegarde dans le dataset +
+  re-sérialisation GEDCOM → persist automatique en `localStorage`
 
 ### Ajouté — Icône PWA
-- `public/icons/icon-192.png` + `icon-512.png` + variantes maskable : arbre généalogique
-  3 générations, fond violet dégradé, étoile dorée sur le nœud racine
+- `public/icon-source.svg` + `icons/icon-{192,512}{,-maskable}.png` : arbre généalogique
+  3 générations, fond violet dégradé, étoile dorée sur le nœud racine, visages souriants
 - `public/apple-touch-icon.png` : icône iOS 180×180
 - `public/favicon.ico` : favicon 32×32
-- `index.html` : balises `apple-touch-icon`, `theme-color`, titre et `lang="fr"`
+- `index.html` : balises `apple-touch-icon`, `theme-color`, titre `Genealogor`, `lang="fr"`
 - `vite.config.ts` : `theme_color`/`background_color` violet, 4 entrées d'icônes (any + maskable)
 
-### Ajouté — Tests unitaires
-- `src/lib/gedcom-parser.test.ts` : 30 cas
-- `src/lib/republican-calendar.test.ts` : 36 cas (dont années sextiles)
-- `src/lib/sosa-aboville.test.ts` : 38 cas
+### Ajouté — Qualité & déploiement
+- `netlify.toml` : déploiement Netlify (SPA redirect, cache-control no-cache sw.js/index.html)
+- `vitest.config.ts` + 104 tests unitaires (parser GEDCOM · calendrier républicain · Sosa/Aboville)
+- `scripts/validate-pwa.mjs` : 14 contrôles sur `dist/` — modules Node natifs uniquement
+- `.github/PULL_REQUEST_TEMPLATE.md` : checklist post-déploiement (7 sections)
 
 ### Ajouté — Fournisseurs IA
-- Fournisseur **Claude (Anthropic)** : implémentation réelle via
-  `POST https://api.anthropic.com/v1/messages` — en-têtes `x-api-key`,
-  `anthropic-dangerous-direct-browser-access: true`, support vision multimodal
+- Fournisseur **Claude (Anthropic)** : `POST https://api.anthropic.com/v1/messages`,
+  en-têtes `x-api-key` + `anthropic-dangerous-direct-browser-access`, vision multimodal
 - Fournisseur **ChatGPT (OpenAI)** : `POST https://api.openai.com/v1/chat/completions`,
-  modèle par défaut `gpt-4o-mini`, support vision multimodal
-- Menu Paramètres refondu : sélecteur 4 fournisseurs (Claude / ChatGPT / OpenRouter / Ollama),
-  champs conditionnels, avertissement mixed-content HTTPS pour Ollama
-
-### Modifié
-- `src/components/views/SettingsPanel.tsx` : `ProviderId` union
-  `'claude' | 'openai' | 'openrouter' | 'ollama'`
-- `package.json` : scripts `test`, `test:watch`, `validate:pwa` ajoutés
+  modèle par défaut `gpt-4o-mini`, vision multimodal
+- Menu Paramètres refondu : sélecteur 4 fournisseurs, champs conditionnels,
+  avertissement mixed-content HTTPS pour Ollama
 
 ---
 
