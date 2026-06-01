@@ -1,0 +1,178 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background gradient: deep purple to violet -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a0a3e"/>
+      <stop offset="100%" style="stop-color:#4a1a8a"/>
+    </linearGradient>
+    <!-- Accent gradient for nodes -->
+    <linearGradient id="nodeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#c084fc"/>
+      <stop offset="100%" style="stop-color:#a855f7"/>
+    </linearGradient>
+    <!-- Root node gradient -->
+    <linearGradient id="rootGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e879f9"/>
+      <stop offset="100%" style="stop-color:#a21caf"/>
+    </linearGradient>
+    <!-- Glow filter -->
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softglow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="100" ry="100" fill="url(#bg)"/>
+
+  <!-- Subtle background texture dots -->
+  <circle cx="80" cy="80" r="2" fill="#6d28d9" opacity="0.4"/>
+  <circle cx="432" cy="80" r="2" fill="#6d28d9" opacity="0.4"/>
+  <circle cx="80" cy="432" r="2" fill="#6d28d9" opacity="0.4"/>
+  <circle cx="432" cy="432" r="2" fill="#6d28d9" opacity="0.4"/>
+  <circle cx="256" cy="60" r="2" fill="#7c3aed" opacity="0.3"/>
+  <circle cx="130" cy="256" r="2" fill="#7c3aed" opacity="0.3"/>
+  <circle cx="382" cy="256" r="2" fill="#7c3aed" opacity="0.3"/>
+
+  <!-- ===== TREE STRUCTURE ===== -->
+  <!-- Vertical trunk from root down -->
+  <!-- Main trunk: root (gen0) → gen1 split -->
+  <line x1="256" y1="168" x2="256" y2="230" stroke="#9333ea" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+
+  <!-- Gen1 horizontal connector -->
+  <line x1="152" y1="230" x2="360" y2="230" stroke="#9333ea" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+
+  <!-- Gen1 left vertical -->
+  <line x1="152" y1="230" x2="152" y2="280" stroke="#9333ea" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+  <!-- Gen1 right vertical -->
+  <line x1="360" y1="230" x2="360" y2="280" stroke="#9333ea" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+
+  <!-- Gen2 left: horizontal connector -->
+  <line x1="90" y1="340" x2="214" y2="340" stroke="#7e22ce" stroke-width="4" stroke-linecap="round" opacity="0.75"/>
+  <!-- Gen2 left left vertical from gen1-left -->
+  <line x1="90" y1="310" x2="90" y2="340" stroke="#7e22ce" stroke-width="4" stroke-linecap="round" opacity="0.75"/>
+  <!-- Gen2 left right vertical from gen1-left -->
+  <line x1="214" y1="310" x2="214" y2="340" stroke="#7e22ce" stroke-width="4" stroke-linecap="round" opacity="0.75"/>
+  <!-- Connector from gen1-left to gen2 split -->
+  <line x1="152" y1="280" x2="152" y2="310" stroke="#7e22ce" stroke-width="4" stroke-linecap="round" opacity="0.75"/>
+  <line x1="90" y1="310" x2="214" y2="310" stroke="#7e22ce" stroke-width="4" stroke-linecap="round" opacity="0.75"/>
+
+  <!-- Gen2 right: horizontal connector -->
+  <line x1="298" y1="340" x2="422" y2="340" stroke="#7e22ce" stroke-width="4" stroke-linecap="round" opacity="0.75"/>
+  <!-- Gen2 right left vertical from gen1-right -->
+  <line x1="298" y1="310" x2="298" y2="340" stroke="#7e22ce" stroke-width="4" stroke-linecap="round" opacity="0.75"/>
+  <!-- Gen2 right right vertical from gen1-right -->
+  <line x1="422" y1="310" x2="422" y2="340" stroke="#7e22ce" stroke-width="4" stroke-linecap="round" opacity="0.75"/>
+  <!-- Connector from gen1-right to gen2 split -->
+  <line x1="360" y1="280" x2="360" y2="310" stroke="#7e22ce" stroke-width="4" stroke-linecap="round" opacity="0.75"/>
+  <line x1="298" y1="310" x2="422" y2="310" stroke="#7e22ce" stroke-width="4" stroke-linecap="round" opacity="0.75"/>
+
+  <!-- Gen3 leaves (8 nodes, smaller) -->
+  <!-- From gen2-LL (90) -->
+  <line x1="60" y1="370" x2="90" y2="340" stroke="#6b21a8" stroke-width="3" opacity="0.6"/>
+  <line x1="90" y1="370" x2="90" y2="340" stroke="#6b21a8" stroke-width="3" opacity="0.6"/>
+  <!-- From gen2-LR (214) -->
+  <line x1="184" y1="370" x2="214" y2="340" stroke="#6b21a8" stroke-width="3" opacity="0.6"/>
+  <line x1="214" y1="370" x2="214" y2="340" stroke="#6b21a8" stroke-width="3" opacity="0.6"/>
+  <!-- From gen2-RL (298) -->
+  <line x1="268" y1="370" x2="298" y2="340" stroke="#6b21a8" stroke-width="3" opacity="0.6"/>
+  <line x1="298" y1="370" x2="298" y2="340" stroke="#6b21a8" stroke-width="3" opacity="0.6"/>
+  <!-- From gen2-RR (422) -->
+  <line x1="392" y1="370" x2="422" y2="340" stroke="#6b21a8" stroke-width="3" opacity="0.6"/>
+  <line x1="422" y1="370" x2="422" y2="340" stroke="#6b21a8" stroke-width="3" opacity="0.6"/>
+
+  <!-- ===== NODES ===== -->
+
+  <!-- Gen3 leaf nodes (8 small circles) -->
+  <circle cx="60" cy="390" r="20" fill="#3b0764" stroke="#7c3aed" stroke-width="2.5" opacity="0.9"/>
+  <circle cx="90" cy="390" r="20" fill="#3b0764" stroke="#7c3aed" stroke-width="2.5" opacity="0.9"/>
+  <circle cx="184" cy="390" r="20" fill="#3b0764" stroke="#7c3aed" stroke-width="2.5" opacity="0.9"/>
+  <circle cx="214" cy="390" r="20" fill="#3b0764" stroke="#7c3aed" stroke-width="2.5" opacity="0.9"/>
+  <circle cx="268" cy="390" r="20" fill="#3b0764" stroke="#7c3aed" stroke-width="2.5" opacity="0.9"/>
+  <circle cx="298" cy="390" r="20" fill="#3b0764" stroke="#7c3aed" stroke-width="2.5" opacity="0.9"/>
+  <circle cx="392" cy="390" r="20" fill="#3b0764" stroke="#7c3aed" stroke-width="2.5" opacity="0.9"/>
+  <circle cx="422" cy="390" r="20" fill="#3b0764" stroke="#7c3aed" stroke-width="2.5" opacity="0.9"/>
+
+  <!-- Tiny person icons in gen3 nodes (simple head + body) -->
+  <g opacity="0.7">
+    <!-- person @60 -->
+    <circle cx="60" cy="383" r="5" fill="#a78bfa"/>
+    <path d="M54 398 Q60 393 66 398" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- person @90 -->
+    <circle cx="90" cy="383" r="5" fill="#a78bfa"/>
+    <path d="M84 398 Q90 393 96 398" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- person @184 -->
+    <circle cx="184" cy="383" r="5" fill="#a78bfa"/>
+    <path d="M178 398 Q184 393 190 398" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- person @214 -->
+    <circle cx="214" cy="383" r="5" fill="#a78bfa"/>
+    <path d="M208 398 Q214 393 220 398" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- person @268 -->
+    <circle cx="268" cy="383" r="5" fill="#a78bfa"/>
+    <path d="M262 398 Q268 393 274 398" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- person @298 -->
+    <circle cx="298" cy="383" r="5" fill="#a78bfa"/>
+    <path d="M292 398 Q298 393 304 398" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- person @392 -->
+    <circle cx="392" cy="383" r="5" fill="#a78bfa"/>
+    <path d="M386 398 Q392 393 398 398" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- person @422 -->
+    <circle cx="422" cy="383" r="5" fill="#a78bfa"/>
+    <path d="M416 398 Q422 393 428 398" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Gen2 nodes (4 medium) -->
+  <circle cx="90" cy="340" r="26" fill="#4c1d95" stroke="#a855f7" stroke-width="3" filter="url(#softglow)"/>
+  <circle cx="214" cy="340" r="26" fill="#4c1d95" stroke="#a855f7" stroke-width="3" filter="url(#softglow)"/>
+  <circle cx="298" cy="340" r="26" fill="#4c1d95" stroke="#a855f7" stroke-width="3" filter="url(#softglow)"/>
+  <circle cx="422" cy="340" r="26" fill="#4c1d95" stroke="#a855f7" stroke-width="3" filter="url(#softglow)"/>
+
+  <!-- Person icons in gen2 -->
+  <g opacity="0.9">
+    <circle cx="90" cy="331" r="7" fill="#c4b5fd"/>
+    <path d="M80 350 Q90 343 100 350" stroke="#c4b5fd" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <circle cx="214" cy="331" r="7" fill="#c4b5fd"/>
+    <path d="M204 350 Q214 343 224 350" stroke="#c4b5fd" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <circle cx="298" cy="331" r="7" fill="#c4b5fd"/>
+    <path d="M288 350 Q298 343 308 350" stroke="#c4b5fd" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <circle cx="422" cy="331" r="7" fill="#c4b5fd"/>
+    <path d="M412 350 Q422 343 432 350" stroke="#c4b5fd" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Gen1 nodes (2 large) -->
+  <circle cx="152" cy="280" r="34" fill="url(#nodeGrad)" stroke="#e9d5ff" stroke-width="3.5" filter="url(#softglow)"/>
+  <circle cx="360" cy="280" r="34" fill="url(#nodeGrad)" stroke="#e9d5ff" stroke-width="3.5" filter="url(#softglow)"/>
+
+  <!-- Person icons in gen1 -->
+  <g opacity="0.95">
+    <circle cx="152" cy="268" r="10" fill="white"/>
+    <path d="M138 292 Q152 282 166 292" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <circle cx="360" cy="268" r="10" fill="white"/>
+    <path d="M346 292 Q360 282 374 292" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- ROOT node (gen0) — largest, most prominent -->
+  <circle cx="256" cy="148" r="44" fill="url(#rootGrad)" stroke="white" stroke-width="4" filter="url(#glow)"/>
+
+  <!-- Crown / star accent above root -->
+  <g transform="translate(256, 90)" opacity="0.9">
+    <polygon points="0,-14 4,-5 14,-5 6,1 9,12 0,6 -9,12 -6,1 -14,-5 -4,-5" fill="#fbbf24" opacity="0.85"/>
+  </g>
+
+  <!-- Person icon in root node -->
+  <circle cx="256" cy="134" r="14" fill="white" opacity="0.95"/>
+  <path d="M236 164 Q256 150 276 164" stroke="white" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.95"/>
+
+  <!-- Subtle shine on root node -->
+  <ellipse cx="244" cy="130" rx="12" ry="8" fill="white" opacity="0.15" transform="rotate(-30 244 130)"/>
+</svg>
