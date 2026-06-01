@@ -107,28 +107,28 @@
   <g opacity="0.7">
     <!-- person @60 -->
     <circle cx="60" cy="383" r="5" fill="#a78bfa"/>
-    <path d="M54 398 Q60 393 66 398" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M54 394 Q60 400 66 394" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
     <!-- person @90 -->
     <circle cx="90" cy="383" r="5" fill="#a78bfa"/>
-    <path d="M84 398 Q90 393 96 398" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M84 394 Q90 400 96 394" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
     <!-- person @184 -->
     <circle cx="184" cy="383" r="5" fill="#a78bfa"/>
-    <path d="M178 398 Q184 393 190 398" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M178 394 Q184 400 190 394" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
     <!-- person @214 -->
     <circle cx="214" cy="383" r="5" fill="#a78bfa"/>
-    <path d="M208 398 Q214 393 220 398" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M208 394 Q214 400 220 394" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
     <!-- person @268 -->
     <circle cx="268" cy="383" r="5" fill="#a78bfa"/>
-    <path d="M262 398 Q268 393 274 398" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M262 394 Q268 400 274 394" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
     <!-- person @298 -->
     <circle cx="298" cy="383" r="5" fill="#a78bfa"/>
-    <path d="M292 398 Q298 393 304 398" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M292 394 Q298 400 304 394" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
     <!-- person @392 -->
     <circle cx="392" cy="383" r="5" fill="#a78bfa"/>
-    <path d="M386 398 Q392 393 398 398" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M386 394 Q392 400 398 394" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
     <!-- person @422 -->
     <circle cx="422" cy="383" r="5" fill="#a78bfa"/>
-    <path d="M416 398 Q422 393 428 398" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M416 394 Q422 400 428 394" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round"/>
   </g>
 
   <!-- Gen2 nodes (4 medium) -->
@@ -140,13 +140,13 @@
   <!-- Person icons in gen2 -->
   <g opacity="0.9">
     <circle cx="90" cy="331" r="7" fill="#c4b5fd"/>
-    <path d="M80 350 Q90 343 100 350" stroke="#c4b5fd" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M80 344 Q90 352 100 344" stroke="#c4b5fd" stroke-width="2.5" fill="none" stroke-linecap="round"/>
     <circle cx="214" cy="331" r="7" fill="#c4b5fd"/>
-    <path d="M204 350 Q214 343 224 350" stroke="#c4b5fd" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M204 344 Q214 352 224 344" stroke="#c4b5fd" stroke-width="2.5" fill="none" stroke-linecap="round"/>
     <circle cx="298" cy="331" r="7" fill="#c4b5fd"/>
-    <path d="M288 350 Q298 343 308 350" stroke="#c4b5fd" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M288 344 Q298 352 308 344" stroke="#c4b5fd" stroke-width="2.5" fill="none" stroke-linecap="round"/>
     <circle cx="422" cy="331" r="7" fill="#c4b5fd"/>
-    <path d="M412 350 Q422 343 432 350" stroke="#c4b5fd" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M412 344 Q422 352 432 344" stroke="#c4b5fd" stroke-width="2.5" fill="none" stroke-linecap="round"/>
   </g>
 
   <!-- Gen1 nodes (2 large) -->
@@ -156,9 +156,9 @@
   <!-- Person icons in gen1 -->
   <g opacity="0.95">
     <circle cx="152" cy="268" r="10" fill="white"/>
-    <path d="M138 292 Q152 282 166 292" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M138 286 Q152 298 166 286" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
     <circle cx="360" cy="268" r="10" fill="white"/>
-    <path d="M346 292 Q360 282 374 292" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M346 286 Q360 298 374 286" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
   </g>
 
   <!-- ROOT node (gen0) — largest, most prominent -->
@@ -171,7 +171,7 @@
 
   <!-- Person icon in root node -->
   <circle cx="256" cy="134" r="14" fill="white" opacity="0.95"/>
-  <path d="M236 164 Q256 150 276 164" stroke="white" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.95"/>
+  <path d="M236 156 Q256 172 276 156" stroke="white" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.95"/>
 
   <!-- Subtle shine on root node -->
   <ellipse cx="244" cy="130" rx="12" ry="8" fill="white" opacity="0.15" transform="rotate(-30 244 130)"/>
