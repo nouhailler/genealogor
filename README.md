@@ -29,6 +29,8 @@
 | 🤖 **IA** | Recherche en langage naturel · Wikipedia · bio · suggestions · normalisation de lieux |
 | 📍 **Lieux** | Nuage de lieux géographiques |
 
+| 🎬 **Démo cinématique** | Bouton ◉ (ambre) dans la topbar : curseur animé, légendes, phases en boucle — survole toutes les vues |
+
 ### 🔒 Privacy-first
 
 Aucune donnée ne quitte votre appareil — sauf les appels IA que *vous* configurez et le géocodage via Nominatim. Les personnes probablement vivantes sont automatiquement floutées.
@@ -159,6 +161,7 @@ public/
 | `/` ou `Ctrl+K` | Focuser la barre de recherche |
 | `Alt+←` / `Alt+→` | Navigation arrière / avant dans l'historique |
 | `?` | Ouvrir l'aide |
+| `◉` *(topbar)* | Lancer / arrêter la démo cinématique |
 
 ---
 

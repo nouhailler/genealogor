@@ -119,6 +119,7 @@ src/
 │   ├── UploadZone.tsx
 │   ├── AuthGate.tsx
 │   └── HelpPanel.tsx
+│   ├── CinematicDemo.tsx      # Démo cinématique — CinematicOverlay + DemoCallbacks
 └── store/                     # Vide — Zustand disponible si besoin
 ```
 
@@ -217,6 +218,7 @@ Toujours utiliser `var(--token)` — ne jamais coder une couleur en dur.
 - **Export** : CSV et GEDCOM depuis la barre de liste ; GEDCOM 5.5.1 et 7.0 depuis le sérialiseur.
 - **Édition in-app** : bouton crayon dans `ProfileView` → `EditPersonModal` (nom, sexe, naissance, décès, profession, note) ; sauvegarde dans le dataset + re-sérialisation GEDCOM → persist localStorage.
 - **Datasets pré-chargeables** : `?dataset=demo` (fetch + parse) et `?dataset=famille` (fetch + déchiffrement Web Crypto + parse) — session existante prioritaire.
+- **Démo cinématique** : bouton ◉ (ambre) dans la topbar → `CinematicOverlay` (`src/components/CinematicDemo.tsx`) ; curseur animé CSS, ripple au clic, légende frosted-glass en bas, 13 phases en boucle couvrant toutes les vues principales ; `data-demo-id` sur les éléments cibles (onglets, liste, recherche).
 
 ## Comportements non encore implémentés
 

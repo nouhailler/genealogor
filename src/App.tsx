@@ -27,6 +27,8 @@ import AiLabView from '@/components/views/AiLabView';
 import MediaGallery from '@/components/views/MediaGallery';
 import SettingsPanel from '@/components/views/SettingsPanel';
 import PassphraseScreen from '@/components/PassphraseScreen';
+import { CinematicOverlay } from '@/components/CinematicDemo';
+import type { DemoCallbacks } from '@/components/CinematicDemo';
 
 const STORAGE_KEYS = {
   DATASETS:    'genealogor.savedDatasets',
@@ -78,6 +80,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showMore, setShowMore] = useState(false);
+  const [demoRunning, setDemoRunning] = useState(false);
   const [showOnboarding, doneOnboarding] = useOnboarding();
   const [advFilter, setAdvFilter] = useState<SearchFilter>(EMPTY_FILTER);
 
@@ -364,6 +367,15 @@ export default function App() {
 
   const selectedPerson = selectedId ? merged.individuals.get(selectedId) ?? null : null;
 
+  const filteredIdsRef = useRef(filteredIndividuals);
+  filteredIdsRef.current = filteredIndividuals;
+
+  const demoCallbacks = useMemo<DemoCallbacks>(() => ({
+    navigateTo,
+    setActiveTab,
+    getPersonIds: () => filteredIdsRef.current.map(p => p.id),
+  }), [navigateTo, setActiveTab]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Passphrase screen for ?dataset=famille
   if (showPassphrase) {
     return (
@@ -411,6 +423,7 @@ export default function App() {
         <div className="flex-1 relative max-w-sm">
           <input
             ref={searchInputRef}
+            data-demo-id="search-input"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Rechercher… (/)"
@@ -440,6 +453,15 @@ export default function App() {
           <input type="file" accept=".ged,.gedcom,.csv" multiple className="hidden" onChange={(e) => e.target.files && loadFiles(Array.from(e.target.files))} />
           <Icon.Plus className="size-4" />
         </label>
+
+        {datasets.length > 0 && (
+          <button
+            onClick={() => setDemoRunning(v => !v)}
+            title={demoRunning ? 'Arrêter la démo cinématique' : 'Lancer la démo cinématique'}
+            className="h-7 w-7 grid place-items-center rounded text-base leading-none transition-colors"
+            style={{ color: demoRunning ? '#f59e0b' : 'var(--ink-faint)' }}
+          >◉</button>
+        )}
 
         <button onClick={() => setShowHelp(true)} className="h-7 w-7 grid place-items-center rounded text-[var(--ink-muted)] hover:text-[var(--ink)]" title="Aide (?)">
           <Icon.Help className="size-4" />
@@ -473,12 +495,13 @@ export default function App() {
             </div>
           )}
           <div className="flex-1 overflow-y-auto">
-            {filteredIndividuals.map((p) => {
+            {filteredIndividuals.map((p, idx) => {
               const masked = isPrivate(p);
               const years = [p.birth?.date?.year, p.death?.date?.year].filter(Boolean);
               return (
                 <button
                   key={p.id}
+                  data-demo-id={idx < 5 ? `person-${idx}` : undefined}
                   onClick={() => { navigateTo(p.id); if (isMobile) setMobilePane('profile'); }}
                   className={`
                     w-full text-left px-3 py-2.5 border-b border-[var(--border)]/50 transition-colors
@@ -508,6 +531,7 @@ export default function App() {
             {TABS.map((t) => (
               <button
                 key={t.id}
+                data-demo-id={`tab-${t.id}`}
                 onClick={() => setActiveTab(t.id)}
                 className={`px-3 py-2.5 text-sm shrink-0 border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === t.id
@@ -567,6 +591,11 @@ export default function App() {
       {/* Mobile onboarding (first launch) */}
       {isMobile && showOnboarding && <Onboarding onDone={doneOnboarding} />}
       {isMobile && <PwaInstallBanner />}
+
+      {/* Cinematic demo overlay */}
+      {demoRunning && datasets.length > 0 && (
+        <CinematicOverlay callbacks={demoCallbacks} onStop={() => setDemoRunning(false)} />
+      )}
 
       {/* Modals */}
       {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}

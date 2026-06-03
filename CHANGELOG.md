@@ -4,6 +4,23 @@ Format : [SemVer](https://semver.org) · Dates ISO 8601
 
 ---
 
+## [0.3.1] — 2026-06-03
+
+### Ajouté — Démo cinématique
+
+- `src/components/CinematicDemo.tsx` : composant `CinematicOverlay` autonome
+  - **Curseur ambre** (cercle 28 px, glow pulsant CSS, transition `cubic-bezier`)
+  - **Ripple au clic** : cercle qui s'expande et disparaît en 500 ms
+  - **Légende** en barre frosted-glass positionnée en bas (`position: fixed`), fade-in animé à chaque phase via `key` React
+  - Bouton **✕ Arrêter** en haut à droite
+  - Timers nettoyés au démontage (`cancelled` flag + `clearTimeout`)
+  - **Script 13 phases** en boucle : intro → sélection personne → Profil → Ascendants → Descendants → Graphe → Frise → Carte → Stats → Qualité → IA → Recherche → personne suivante
+- `App.tsx` : bouton ◉ (ambre quand actif, `--ink-faint` sinon) dans la topbar, visible dès qu'un dataset est chargé
+- Attributs `data-demo-id` sur les cibles DOM : `search-input`, `tab-{id}` (13 onglets), `person-{0…4}` (5 premiers items de la liste)
+- Pattern ref-stable `filteredIdsRef` pour éviter les stale closures dans les callbacks de navigation
+
+---
+
 ## [0.3.0] — 2026-06-01
 
 ### Ajouté — Jeux de données pré-chargeables
