@@ -11,6 +11,8 @@ import AdvancedSearch from '@/components/AdvancedSearch';
 import { type SearchFilter, EMPTY_FILTER, applyAdvancedFilter, exportCSV, exportGEDCOM } from '@/lib/advanced-filter';
 import UploadZone from '@/components/UploadZone';
 import HelpPanel from '@/components/HelpPanel';
+import TipBar from '@/components/TipBar';
+import { useHiddenTips } from '@/lib/tips';
 import { MobileBottomNav, MobileMoreSheet } from '@/components/mobile/MobileShell';
 import type { PrimaryMobileTab } from '@/components/mobile/mobile-tabs';
 import { Onboarding, PwaInstallBanner } from '@/components/mobile/MobileOnboarding';
@@ -31,7 +33,8 @@ import MediaGallery from '@/components/views/MediaGallery';
 import SettingsPanel from '@/components/views/SettingsPanel';
 import PassphraseScreen from '@/components/PassphraseScreen';
 import { CinematicOverlay } from '@/components/CinematicDemo';
-import type { DemoCallbacks } from '@/components/CinematicDemo';
+import { VIEW_DEMOS } from '@/lib/demo-scripts';
+import type { DemoCallbacks } from '@/lib/demo-scripts';
 
 const STORAGE_KEYS = {
   DATASETS:    'genealogor.savedDatasets',
@@ -84,7 +87,9 @@ export default function App() {
   const [showHelp, setShowHelp] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [demoRunning, setDemoRunning] = useState(false);
+  const [viewDemo, setViewDemo] = useState<TabId | null>(null);
   const [showOnboarding, doneOnboarding] = useOnboarding();
+  const { hidden: hiddenTips, hide: hideTip, resetAll: resetTips } = useHiddenTips();
   const [advFilter, setAdvFilter] = useState<SearchFilter>(EMPTY_FILTER);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -456,6 +461,7 @@ export default function App() {
   if (datasets.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--bg)] px-4 py-12">
+        {showOnboarding && <Onboarding onDone={doneOnboarding} />}
         <header className="mb-10 text-center">
           <h1 className="text-2xl font-semibold text-[var(--ink)] tracking-tight">Genealogor</h1>
           <p className="text-sm text-[var(--ink-muted)] mt-1">Visualiseur GEDCOM offline-first</p>
@@ -620,8 +626,17 @@ export default function App() {
             ))}
           </div>
 
+          {/* Per-view tip strip */}
+          <TipBar
+            tab={activeTab}
+            hidden={hiddenTips}
+            onHide={hideTip}
+            onStartDemo={() => setViewDemo(activeTab)}
+            onOpenHelp={() => setShowHelp(true)}
+          />
+
           {/* View */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto" data-demo-id="view-container">
             {activeTab === 'media' ? (
               <MediaGallery />
             ) : !selectedPerson ? (
@@ -669,13 +684,24 @@ export default function App() {
         </>
       )}
 
-      {/* Mobile onboarding (first launch) */}
-      {isMobile && showOnboarding && <Onboarding onDone={doneOnboarding} />}
+      {/* First-launch onboarding (mobile + desktop) */}
+      {showOnboarding && <Onboarding onDone={doneOnboarding} />}
       {isMobile && <PwaInstallBanner />}
 
-      {/* Cinematic demo overlay */}
+      {/* Cinematic demo overlay — full tour (loops) */}
       {demoRunning && datasets.length > 0 && (
         <CinematicOverlay callbacks={demoCallbacks} onStop={() => setDemoRunning(false)} />
+      )}
+
+      {/* Per-view guided demo (plays once) */}
+      {viewDemo && !demoRunning && (
+        <CinematicOverlay
+          key={viewDemo}
+          callbacks={demoCallbacks}
+          script={VIEW_DEMOS[viewDemo]}
+          loop={false}
+          onStop={() => setViewDemo(null)}
+        />
       )}
 
       {/* Modals */}
@@ -686,6 +712,8 @@ export default function App() {
           dataLoaded={datasets.length > 0}
           onClose={() => setShowHelp(false)}
           onOpenSettings={() => { setShowHelp(false); setShowSettings(true); }}
+          onStartDemo={() => setViewDemo(activeTab)}
+          onResetTips={resetTips}
         />
       )}
     </div>

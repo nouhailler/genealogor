@@ -1,5 +1,5 @@
-// Mobile onboarding (3 slides) and PWA install banner.
-// The useOnboarding hook lives in @/lib/onboarding.
+// First-launch onboarding (4 slides — full-screen on mobile, centred card on
+// desktop) and PWA install banner. The useOnboarding hook lives in @/lib/onboarding.
 import { useState, useEffect, useRef } from 'react';
 import { markOnboarded } from '@/lib/onboarding';
 
@@ -54,6 +54,19 @@ const SLIDES: Slide[] = [
       </svg>
     ),
   },
+  {
+    key: 'guide',
+    accent: 'var(--success, #1a9e5c)',
+    title: 'Guidé à chaque écran',
+    body: 'Chaque vue propose une astuce 💡, une aide contextuelle (touche ?) et une démo guidée ▶ pour découvrir toutes ses fonctions à votre rythme.',
+    icon: (c) => (
+      <svg viewBox="0 0 24 24" width={40} height={40} fill="none" stroke={c} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+    ),
+  },
 ];
 
 // ── Onboarding ────────────────────────────────────────────────────────────────
@@ -84,72 +97,85 @@ export function Onboarding({ onDone }: OnboardingProps) {
     touchStart.current = null;
   };
 
+  // Desktop: arrows / Enter to advance, Escape to skip
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' || e.key === 'Enter') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowLeft' && i > 0) { e.preventDefault(); setI((v) => v - 1); }
+      else if (e.key === 'Escape') { e.preventDefault(); finish(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
   return (
     <div
-      className="fixed inset-0 z-[300] flex flex-col"
+      className="fixed inset-0 z-[300] flex flex-col sm:items-center sm:justify-center"
       style={{ background: 'var(--bg)', paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* Skip */}
-      <div className="flex justify-end px-5 pt-4">
-        {!last && (
-          <button onClick={finish} className="text-[13px] font-medium text-[var(--ink-faint)] px-3 py-2 active:opacity-60">
-            Passer
-          </button>
-        )}
-      </div>
-
-      {/* Body */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
-        <div
-          key={`icon-${slide.key}`}
-          className="size-24 rounded-3xl grid place-items-center mb-8"
-          style={{ background: `color-mix(in oklch, ${slide.accent} 14%, transparent)`, animation: 'tabFadeSlide 0.3s ease-out' }}
-        >
-          {slide.icon(slide.accent)}
+      <div className="flex flex-col flex-1 w-full sm:flex-none sm:w-[26rem] sm:min-h-[30rem] sm:rounded-2xl sm:border sm:border-[var(--border)] sm:bg-[var(--surface)] sm:shadow-2xl sm:pb-6">
+        {/* Skip */}
+        <div className="flex justify-end px-5 pt-4">
+          {!last && (
+            <button onClick={finish} className="text-[13px] font-medium text-[var(--ink-faint)] px-3 py-2 active:opacity-60 hover:text-[var(--ink)]">
+              Passer
+            </button>
+          )}
         </div>
-        <h2
-          key={`title-${slide.key}`}
-          className="text-2xl font-semibold tracking-tight text-[var(--ink)] mb-3"
-          style={{ animation: 'tabFadeSlide 0.3s ease-out' }}
-        >
-          {slide.title}
-        </h2>
-        <p
-          key={`body-${slide.key}`}
-          className="text-[15px] leading-relaxed text-[var(--ink-muted)] max-w-sm"
-          style={{ animation: 'tabFadeSlide 0.35s ease-out' }}
-        >
-          {slide.body}
-        </p>
-      </div>
 
-      {/* Dots */}
-      <div className="flex justify-center gap-2 mb-6">
-        {SLIDES.map((s, idx) => (
+        {/* Body */}
+        <div className="flex-1 flex flex-col items-center justify-center px-8 py-6 text-center">
+          <div
+            key={`icon-${slide.key}`}
+            className="size-24 rounded-3xl grid place-items-center mb-8"
+            style={{ background: `color-mix(in oklch, ${slide.accent} 14%, transparent)`, animation: 'tabFadeSlide 0.3s ease-out' }}
+          >
+            {slide.icon(slide.accent)}
+          </div>
+          <h2
+            key={`title-${slide.key}`}
+            className="text-2xl font-semibold tracking-tight text-[var(--ink)] mb-3"
+            style={{ animation: 'tabFadeSlide 0.3s ease-out' }}
+          >
+            {slide.title}
+          </h2>
+          <p
+            key={`body-${slide.key}`}
+            className="text-[15px] leading-relaxed text-[var(--ink-muted)] max-w-sm"
+            style={{ animation: 'tabFadeSlide 0.35s ease-out' }}
+          >
+            {slide.body}
+          </p>
+        </div>
+
+        {/* Dots */}
+        <div className="flex justify-center gap-2 mb-6">
+          {SLIDES.map((s, idx) => (
+            <button
+              key={s.key}
+              onClick={() => setI(idx)}
+              aria-label={`Écran ${idx + 1}`}
+              style={{
+                width: idx === i ? 24 : 8, height: 8, borderRadius: 999,
+                background: idx === i ? 'var(--accent)' : 'var(--border-strong)',
+                transition: 'all 0.25s ease-out',
+              }}
+            />
+          ))}
+        </div>
+
+        {/* CTA */}
+        <div className="px-6">
           <button
-            key={s.key}
-            onClick={() => setI(idx)}
-            aria-label={`Écran ${idx + 1}`}
-            style={{
-              width: idx === i ? 24 : 8, height: 8, borderRadius: 999,
-              background: idx === i ? 'var(--accent)' : 'var(--border-strong)',
-              transition: 'all 0.25s ease-out',
-            }}
-          />
-        ))}
-      </div>
-
-      {/* CTA */}
-      <div className="px-6">
-        <button
-          onClick={next}
-          className="w-full h-12 rounded-full text-[15px] font-semibold active:opacity-80"
-          style={{ background: 'var(--ink)', color: 'var(--bg)' }}
-        >
-          {last ? 'Commencer' : 'Suivant'}
-        </button>
+            onClick={next}
+            className="w-full h-12 rounded-full text-[15px] font-semibold active:opacity-80 hover:opacity-90"
+            style={{ background: 'var(--ink)', color: 'var(--bg)' }}
+          >
+            {last ? 'Commencer' : 'Suivant'}
+          </button>
+        </div>
       </div>
     </div>
   );

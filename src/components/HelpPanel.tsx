@@ -284,9 +284,13 @@ interface Props {
   dataLoaded: boolean;
   onClose: () => void;
   onOpenSettings: () => void;
+  /** Launch the guided demo of the current view. */
+  onStartDemo?: () => void;
+  /** Re-show all dismissed tip bars. */
+  onResetTips?: () => void;
 }
 
-export default function HelpPanel({ activeTab, dataLoaded, onClose, onOpenSettings }: Props) {
+export default function HelpPanel({ activeTab, dataLoaded, onClose, onOpenSettings, onStartDemo, onResetTips }: Props) {
   const key: HelpKey = !dataLoaded ? 'home' : (activeTab ?? 'profile');
   const content = HELP[key] ?? HELP.home;
 
@@ -334,12 +338,28 @@ export default function HelpPanel({ activeTab, dataLoaded, onClose, onOpenSettin
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-[var(--border)] flex items-center justify-between text-[11px] font-mono text-[var(--ink-faint)]">
-          <span>Raccourci : <kbd className="px-1.5 py-0.5 rounded bg-[var(--surface)] border border-[var(--border)] text-[var(--ink)]">?</kbd> pour ouvrir l'aide</span>
-          <button onClick={onClose}
-            className="text-xs font-mono px-3 py-1.5 rounded bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90">
-            Fermer
-          </button>
+        <div className="px-5 py-3 border-t border-[var(--border)] flex items-center justify-between gap-3 text-[11px] font-mono text-[var(--ink-faint)]">
+          <span className="hidden sm:block">Raccourci : <kbd className="px-1.5 py-0.5 rounded bg-[var(--surface)] border border-[var(--border)] text-[var(--ink)]">?</kbd> pour ouvrir l'aide</span>
+          <div className="flex items-center gap-2 ml-auto">
+            {onResetTips && (
+              <button onClick={onResetTips}
+                className="text-xs font-mono px-3 py-1.5 rounded border border-[var(--border)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-hover)]"
+                title="Réafficher les bandeaux d'astuces masqués">
+                💡 Réafficher les astuces
+              </button>
+            )}
+            {onStartDemo && dataLoaded && (
+              <button onClick={() => { onClose(); onStartDemo(); }}
+                className="text-xs font-mono px-3 py-1.5 rounded border border-[var(--border)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--surface-hover)]"
+                title="Démonstration guidée de la vue courante">
+                ▶ Démo de cette vue
+              </button>
+            )}
+            <button onClick={onClose}
+              className="text-xs font-mono px-3 py-1.5 rounded bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90">
+              Fermer
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -87,6 +87,8 @@ src/
 │   ├── favorites.ts           # useFavorites(), useRecentlyViewed(), haptic()
 │   ├── share.ts               # sharePerson() — Web Share API + fallback presse-papiers
 │   ├── onboarding.ts          # useOnboarding(), markOnboarded()
+│   ├── tips.ts                # TIPS par vue + useHiddenTips() (bandeau d'astuces)
+│   ├── demo-scripts.ts        # TOUR_SCRIPT (tour complet) + VIEW_DEMOS (démos par vue)
 │   ├── ai-client.ts           # aiCall / aiCallMultimodal — couche LLM (4 fournisseurs)
 │   ├── advanced-filter.ts     # SearchFilter, applyAdvancedFilter, exportCSV/GEDCOM
 │   ├── merge-resolved.ts      # Persistance des paires de doublons résolues
@@ -118,7 +120,7 @@ src/
 │   ├── mobile/
 │   │   ├── MobileShell.tsx    # MobileBottomNav + MobileMoreSheet (favoris/récents inclus)
 │   │   ├── mobile-tabs.ts     # PRIMARY_MOBILE_TABS / OVERFLOW_TABS
-│   │   └── MobileOnboarding.tsx
+│   │   └── MobileOnboarding.tsx # Onboarding 4 diapos (mobile plein écran + carte desktop) + bannière PWA
 │   ├── media/
 │   │   ├── AttachmentDetail.tsx
 │   │   └── AttachmentsSection.tsx
@@ -126,7 +128,8 @@ src/
 │   ├── ui-kit.tsx             # Icon, formatVital, sexLabel…
 │   ├── AdvancedSearch.tsx     # UI des filtres (logique dans lib/advanced-filter.ts)
 │   ├── UploadZone.tsx
-│   └── HelpPanel.tsx
+│   ├── TipBar.tsx             # Bandeau d'astuces par vue (💡 rotation, démo, aide, masquer)
+│   └── HelpPanel.tsx          # Aide contextuelle par vue + boutons démo / réafficher astuces
 │   ├── CinematicDemo.tsx      # Démo cinématique — CinematicOverlay + DemoCallbacks
 └── store/                     # Vide — Zustand disponible si besoin
 ```
@@ -181,6 +184,8 @@ Au relancement de la PWA, la session est restaurée automatiquement sans action 
 | `genealogor.theme` | `'light'` ou `'dark'` |
 | `genealogor.favorites` | JSON `[PersonId]` — favoris (étoile dans ProfileView, chip ★ dans la liste) |
 | `genealogor.recent` | JSON `[PersonId]` — 12 dernières personnes consultées |
+| `genealogor.onboarded` | `'1'` une fois l'onboarding 4 diapos terminé ou passé |
+| `genealogor.tipsHidden` | JSON `{tabId: true}` — bandeaux d'astuces masqués par vue |
 | `genealogor.aiSettings` | JSON `{provider, claude?, openai?, openrouter?, ollama?}` — config fournisseur IA |
 | `genealogor.shortBios` · `narratives` · `semanticDedupeCache` · etc. | Caches des résultats IA |
 
@@ -231,7 +236,10 @@ Toujours utiliser `var(--token)` — ne jamais coder une couleur en dur.
 - **Partage** : bouton partage dans `ProfileView` → Web Share API, fallback copie presse-papiers (`src/lib/share.ts`) ; l'URL partagée est un permalink.
 - **Permalinks** : l'URL reflète l'état courant (`?person=&tab=&q=&ft=1&fav=1&adv={json}`, `replaceState`) et est relue au chargement — priorité sur la session localStorage ; `?dataset=` est préservé.
 - **Datasets pré-chargeables** : `?dataset=demo` (fetch + parse) et `?dataset=famille` (fetch + déchiffrement Web Crypto + parse) — session existante prioritaire.
-- **Démo cinématique** : bouton ◉ (ambre) dans la topbar → `CinematicOverlay` (`src/components/CinematicDemo.tsx`) ; curseur animé CSS, ripple au clic, légende frosted-glass en bas, 13 phases en boucle couvrant toutes les vues principales ; `data-demo-id` sur les éléments cibles (onglets, liste, recherche).
+- **Démo cinématique** : bouton ◉ (ambre) dans la topbar → `CinematicOverlay` (`src/components/CinematicDemo.tsx`) ; curseur animé CSS, ripple au clic, légende frosted-glass en bas, 13 phases en boucle couvrant toutes les vues principales ; `data-demo-id` sur les éléments cibles (onglets, liste, recherche). Les scripts (tour complet + démos par vue) sont dans `src/lib/demo-scripts.ts`.
+- **Onboarding** : 4 diapos au premier lancement (import, vues, IA, guidage) — plein écran sur mobile (swipe), carte centrée sur desktop (flèches/Entrée/Échap) ; s'affiche aussi sur l'écran d'upload ; persisté via `genealogor.onboarded`.
+- **Astuces par vue** : bandeau 💡 sous la barre d'onglets (`TipBar.tsx`, contenu dans `src/lib/tips.ts`) — 3 à 5 astuces en rotation par vue, boutons démo/aide, masquable par vue (persisté), réaffichable depuis l'aide.
+- **Démos guidées par vue** : bouton ▶ du bandeau d'astuces ou de l'aide → `CinematicOverlay` avec le script `VIEW_DEMOS[tab]` (3-4 étapes ancrées dans le conteneur de vue, jouées une fois sans boucle).
 
 ## Comportements non encore implémentés
 

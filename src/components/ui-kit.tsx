@@ -37,6 +37,8 @@ export const Icon = {
   Pencil:        (p: IconProps) => <svg {...base} {...p}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
   Check:         (p: IconProps) => <svg {...base} {...p}><polyline points="20 6 9 17 4 12"/></svg>,
   Star:          (p: IconProps) => <svg {...base} {...p}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+  Bulb:          (p: IconProps) => <svg {...base} {...p}><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4.95 11.95c.6.6.95 1.4.95 2.05h8c0-.65.35-1.45.95-2.05A7 7 0 0 0 12 2z"/></svg>,
+  Play:          (p: IconProps) => <svg {...base} {...p}><polygon points="6 3 20 12 6 21 6 3"/></svg>,
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -61,4 +63,18 @@ export function sexColor(sex: string): string {
   if (sex === 'M') return 'var(--sex-m)';
   if (sex === 'F') return 'var(--sex-f)';
   return 'var(--ink-faint)';
+}
+
+/** Minimal inline markdown: **bold** and `code`. */
+export function renderInlineMd(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+  return parts.map((p, i) => {
+    if (/^\*\*[^*]+\*\*$/.test(p)) {
+      return <strong key={i} className="text-[var(--ink)]">{p.slice(2, -2)}</strong>;
+    }
+    if (/^`[^`]+`$/.test(p)) {
+      return <code key={i} className="font-mono text-[var(--ink)] bg-[var(--surface)] px-1 py-0.5 rounded text-[0.9em]">{p.slice(1, -1)}</code>;
+    }
+    return <span key={i}>{p}</span>;
+  });
 }

@@ -50,6 +50,8 @@ Framework-free TypeScript modules. All re-exported from `src/lib/index.ts`. Nota
 | `privacy.ts` | `usePrivacy()`, `shouldMask()` |
 | `favorites.ts` | `useFavorites()`, `useRecentlyViewed()`, `haptic()` |
 | `share.ts` | `sharePerson()` — Web Share API + clipboard fallback |
+| `tips.ts` | per-view `TIPS` content + `useHiddenTips()` |
+| `demo-scripts.ts` | `TOUR_SCRIPT` (full tour) + `VIEW_DEMOS` (per-view demos) |
 | `ai-client.ts` | `aiCall` / `aiCallMultimodal` — 4 AI providers |
 | `advanced-filter.ts` | `applyAdvancedFilter`, `exportCSV`, `exportGEDCOM` |
 | `historical-events.ts` | French historical events for TimelineView |
@@ -64,7 +66,11 @@ Special views: `AncestorsView` hosts `FanChart`, `PedigreeChart` (`PedigreeChart
 ### `src/components/mobile/`
 
 - `MobileShell.tsx` — `MobileBottomNav` + `MobileMoreSheet` (bottom sheet with secondary tabs)
-- `MobileOnboarding.tsx` — first-launch flow + PWA install banner
+- `MobileOnboarding.tsx` — first-launch flow (4 slides, used on both mobile and desktop) + PWA install banner
+
+### In-app guidance
+
+`TipBar.tsx` (under the tab bar) shows rotating per-view tips from `src/lib/tips.ts`, with shortcuts to the per-view guided demo (`VIEW_DEMOS` in `src/lib/demo-scripts.ts`, played once by `CinematicOverlay`) and the contextual `HelpPanel`. Tip bars are dismissible per view (`genealogor.tipsHidden`) and restorable from the help panel footer.
 
 ### Design system
 
