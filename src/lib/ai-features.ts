@@ -1,6 +1,6 @@
 // AI feature functions — all results are cached in localStorage.
-// Provider routing is handled by aiCall / aiCallMultimodal from SettingsPanel.
-import { aiCall, aiCallMultimodal } from '@/components/views/SettingsPanel';
+// Provider routing is handled by aiCall / aiCallMultimodal from ai-client.
+import { aiCall, aiCallMultimodal } from '@/lib/ai-client';
 import type { Individual, Family } from '@/types/genealogy';
 
 // ── Cache helpers ─────────────────────────────────────────────────────────────

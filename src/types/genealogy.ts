@@ -121,20 +121,6 @@ export interface ViewProps {
   isPrivate: (p: Individual | null | undefined) => boolean;
 }
 
-// ── Settings ─────────────────────────────────────────────────────────────────
-
-export type AiProvider = 'claude' | 'openrouter' | 'ollama' | 'none';
-
-export interface AppSettings {
-  theme: 'light' | 'dark' | 'system';
-  privacyEnabled: boolean;
-  privacyThresholdYears: number;
-  aiProvider: AiProvider;
-  aiModel: string;
-  aiApiKey: string;
-  aiEndpoint: string;
-}
-
 // ── Advanced search / filtering ───────────────────────────────────────────────
 
 export interface AdvancedFilter {

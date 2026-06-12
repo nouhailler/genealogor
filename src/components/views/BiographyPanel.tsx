@@ -1,7 +1,7 @@
 // AI biography section — 4-6 sentence factual bio, cached per person in localStorage.
 import { useState, useEffect } from 'react';
 import { Icon } from '@/components/ui-kit';
-import { aiCall } from '@/components/views/SettingsPanel';
+import { aiCall } from '@/lib/ai-client';
 import type { Individual, Family } from '@/types/genealogy';
 
 const BIO_CACHE_KEY = 'genealogor.bios';

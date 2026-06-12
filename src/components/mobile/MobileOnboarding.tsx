@@ -1,11 +1,10 @@
-// Mobile onboarding (3 slides), PWA install banner, and Web Share helper.
+// Mobile onboarding (3 slides) and PWA install banner.
+// The useOnboarding hook lives in @/lib/onboarding.
 import { useState, useEffect, useRef } from 'react';
-import { getCachedShortBio } from '@/lib/ai-features';
-import type { Individual } from '@/types/genealogy';
+import { markOnboarded } from '@/lib/onboarding';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const ONBOARD_KEY = 'genealogor.onboarded';
 
 interface Slide {
   key: string;
@@ -57,15 +56,6 @@ const SLIDES: Slide[] = [
   },
 ];
 
-// ── useOnboarding ─────────────────────────────────────────────────────────────
-
-export function useOnboarding(): [boolean, () => void] {
-  const [show, setShow] = useState(() => {
-    try { return localStorage.getItem(ONBOARD_KEY) !== '1'; } catch { return false; }
-  });
-  return [show, () => setShow(false)];
-}
-
 // ── Onboarding ────────────────────────────────────────────────────────────────
 
 interface OnboardingProps {
@@ -79,7 +69,7 @@ export function Onboarding({ onDone }: OnboardingProps) {
   const touchStart = useRef<number | null>(null);
 
   const finish = () => {
-    try { localStorage.setItem(ONBOARD_KEY, '1'); } catch { /* ignore */ }
+    markOnboarded();
     onDone();
   };
 
@@ -245,37 +235,3 @@ export function PwaInstallBanner() {
   );
 }
 
-// ── Share person ──────────────────────────────────────────────────────────────
-
-export async function sharePerson(person: Individual): Promise<'shared' | 'copied' | 'failed'> {
-  if (!person) return 'failed';
-  const vitals: string[] = [];
-  if (person.birth?.date?.year || person.birth?.place) {
-    vitals.push(`Naissance : ${person.birth?.date?.display || person.birth?.date?.year || '?'}${person.birth?.place ? ' à ' + person.birth.place : ''}`);
-  }
-  if (person.death?.date?.year || person.death?.place) {
-    vitals.push(`Décès : ${person.death?.date?.display || person.death?.date?.year || '?'}${person.death?.place ? ' à ' + person.death.place : ''}`);
-  }
-  if (person.occupation) vitals.push(`Profession : ${person.occupation}`);
-
-  const bio = getCachedShortBio(person.id);
-  const url = `${location.origin}${location.pathname}?person=${encodeURIComponent(person.id)}`;
-  const text = [person.name?.display, bio ? `\n${bio}` : '', vitals.length ? '\n\n' + vitals.join('\n') : ''].filter(Boolean).join('');
-
-  try {
-    if (navigator.share) {
-      await navigator.share({ title: `Genealogor — ${person.name?.display}`, text, url });
-      return 'shared';
-    }
-  } catch (e) {
-    if ((e as Error)?.name === 'AbortError') return 'failed';
-  }
-  try {
-    await navigator.clipboard.writeText(`${text}\n\n${url}`);
-    return 'copied';
-  } catch { return 'failed'; }
-}
-
-export function canShare(): boolean {
-  return !!(navigator.share || navigator.clipboard);
-}

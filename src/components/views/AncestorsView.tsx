@@ -8,7 +8,7 @@ import HourglassView from './HourglassView';
 
 interface AncestorNode { person: Individual; sosa: number; generation: number }
 
-export function computeAncestors(
+function computeAncestors(
   person: Individual,
   individuals: Map<string, Individual>,
   families: Map<string, Family>,

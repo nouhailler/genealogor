@@ -4,14 +4,17 @@ import { parse as parseGedcom } from '@/lib/gedcom-parser';
 import { importCSV } from '@/lib/csv-importer';
 import { serialize } from '@/lib/gedcom-serializer';
 import { usePrivacy, shouldMask } from '@/lib/privacy';
+import { useFavorites, useRecentlyViewed, clearFavorites, clearRecent, haptic } from '@/lib/favorites';
 import { search as ftSearch } from '@/lib/fulltext-search';
 import { Icon } from '@/components/ui-kit';
-import AdvancedSearch, { type SearchFilter, EMPTY_FILTER, applyAdvancedFilter, exportCSV, exportGEDCOM } from '@/components/AdvancedSearch';
+import AdvancedSearch from '@/components/AdvancedSearch';
+import { type SearchFilter, EMPTY_FILTER, applyAdvancedFilter, exportCSV, exportGEDCOM } from '@/lib/advanced-filter';
 import UploadZone from '@/components/UploadZone';
 import HelpPanel from '@/components/HelpPanel';
 import { MobileBottomNav, MobileMoreSheet } from '@/components/mobile/MobileShell';
-import type { PrimaryMobileTab } from '@/components/mobile/MobileShell';
-import { Onboarding, useOnboarding, PwaInstallBanner } from '@/components/mobile/MobileOnboarding';
+import type { PrimaryMobileTab } from '@/components/mobile/mobile-tabs';
+import { Onboarding, PwaInstallBanner } from '@/components/mobile/MobileOnboarding';
+import { useOnboarding } from '@/lib/onboarding';
 import ProfileView from '@/components/views/ProfileView';
 import AncestorsView from '@/components/views/AncestorsView';
 import DescendantsView from '@/components/views/DescendantsView';
@@ -114,6 +117,10 @@ export default function App() {
   });
   const [query, setQuery] = useState('');
   const [useFullText, setUseFullText] = useState(false);
+  const [favOnly, setFavOnly] = useState(false);
+
+  const { favorites, isFav, toggleFav } = useFavorites();
+  const { recent, push: pushRecent } = useRecentlyViewed();
 
   const navStack = useRef<string[]>([]);
   const navIdx = useRef(-1);
@@ -143,7 +150,7 @@ export default function App() {
       }
     } catch { /* ignore corrupted data */ }
     setRestoring(false);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);  
 
   // Auto-load preloaded datasets from URL param ?dataset=demo|famille
   // Runs only once, after session restore, and only if no session was restored.
@@ -194,17 +201,64 @@ export default function App() {
   // Persist selected person
   useEffect(() => {
     if (restoring || !selectedId) return;
-    try { localStorage.setItem(STORAGE_KEYS.SELECTED_ID, selectedId); } catch {}
+    try { localStorage.setItem(STORAGE_KEYS.SELECTED_ID, selectedId); } catch { /* ignore */ }
   }, [selectedId, restoring]);
 
   // Persist active tab
   useEffect(() => {
     if (restoring) return;
-    try { localStorage.setItem(STORAGE_KEYS.ACTIVE_TAB, activeTab); } catch {}
+    try { localStorage.setItem(STORAGE_KEYS.ACTIVE_TAB, activeTab); } catch { /* ignore */ }
   }, [activeTab, restoring]);
+
+  // Apply permalink params once data is loaded (URL takes priority over the
+  // restored localStorage session) — see PermalinkState in types/genealogy.ts
+  // Snapshot taken at mount: the URL-sync effect below rewrites the URL before
+  // data finishes loading, so reading window.location here would be too late.
+  const initialUrlParams = useRef(new URLSearchParams(window.location.search));
+  const permalinkApplied = useRef(false);
+  useEffect(() => {
+    if (restoring || datasets.length === 0 || permalinkApplied.current) return;
+    permalinkApplied.current = true;
+    const params = initialUrlParams.current;
+    const person = params.get('person');
+    if (person && merged.individuals.has(person)) {
+      navStack.current = [person];
+      navIdx.current = 0;
+      setSelectedId(person);
+    }
+    const tab = params.get('tab');
+    if (tab && TABS.some((t) => t.id === tab)) setActiveTab(tab as TabId);
+    const q = params.get('q');
+    if (q) setQuery(q);
+    if (params.get('ft') === '1') setUseFullText(true);
+    if (params.get('fav') === '1') setFavOnly(true);
+    const adv = params.get('adv');
+    if (adv) {
+      try { setAdvFilter((prev) => ({ ...prev, ...JSON.parse(adv) })); } catch { /* malformed — ignore */ }
+    }
+  }, [restoring, datasets.length, merged.individuals]);
+
+  // Keep the URL in sync so the current view is a stable shareable link
+  useEffect(() => {
+    if (restoring) return;
+    const params = new URLSearchParams();
+    if (datasetParam) params.set('dataset', datasetParam);
+    if (datasets.length > 0) {
+      if (selectedId) params.set('person', selectedId);
+      if (activeTab !== 'profile') params.set('tab', activeTab);
+      if (query.trim()) params.set('q', query.trim());
+      if (useFullText) params.set('ft', '1');
+      if (favOnly) params.set('fav', '1');
+      const advActive = Object.fromEntries(Object.entries(advFilter).filter(([, v]) => v));
+      if (Object.keys(advActive).length > 0) params.set('adv', JSON.stringify(advActive));
+    }
+    const qs = params.toString();
+    window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
+  }, [restoring, datasets.length, selectedId, activeTab, query, useFullText, favOnly, advFilter, datasetParam]);
 
   const navigateTo = useCallback((id: string) => {
     if (!id) return;
+    pushRecent(id);
     const stack = navStack.current;
     const idx = navIdx.current;
     if (stack[idx] === id) { setSelectedId(id); return; }
@@ -212,7 +266,7 @@ export default function App() {
     navIdx.current = navStack.current.length - 1;
     setSelectedId(id);
     setNavTick((t) => t + 1);
-  }, []);
+  }, [pushRecent]);
 
   const navUndo = useCallback(() => {
     if (navIdx.current <= 0) return;
@@ -362,10 +416,20 @@ export default function App() {
         return name.includes(q);
       });
     }
-    return applyAdvancedFilter(base, '', advFilter);
-  }, [merged.individuals, query, useFullText, advFilter]);
+    const result = applyAdvancedFilter(base, '', advFilter);
+    return favOnly ? result.filter((p) => favorites.has(p.id)) : result;
+  }, [merged.individuals, query, useFullText, advFilter, favOnly, favorites]);
 
   const selectedPerson = selectedId ? merged.individuals.get(selectedId) ?? null : null;
+
+  const favoritePersons = useMemo(
+    () => Array.from(favorites).map((id) => merged.individuals.get(id)).filter(Boolean) as Individual[],
+    [favorites, merged.individuals],
+  );
+  const recentPersons = useMemo(
+    () => recent.map((id) => merged.individuals.get(id)).filter(Boolean) as Individual[],
+    [recent, merged.individuals],
+  );
 
   const filteredIdsRef = useRef(filteredIndividuals);
   filteredIdsRef.current = filteredIndividuals;
@@ -374,7 +438,7 @@ export default function App() {
     navigateTo,
     setActiveTab,
     getPersonIds: () => filteredIdsRef.current.map(p => p.id),
-  }), [navigateTo, setActiveTab]); // eslint-disable-line react-hooks/exhaustive-deps
+  }), [navigateTo, setActiveTab]);  
 
   // Passphrase screen for ?dataset=famille
   if (showPassphrase) {
@@ -450,7 +514,7 @@ export default function App() {
         </button>
 
         <label className="h-7 w-7 grid place-items-center rounded cursor-pointer text-[var(--ink-muted)] hover:text-[var(--ink)]" title="Ajouter fichier">
-          <input type="file" accept=".ged,.gedcom,.csv" multiple className="hidden" onChange={(e) => e.target.files && loadFiles(Array.from(e.target.files))} />
+          <input type="file" accept=".ged,.gedcom,.csv" multiple className="hidden" onChange={(e) => { if (e.target.files) loadFiles(Array.from(e.target.files)); }} />
           <Icon.Plus className="size-4" />
         </label>
 
@@ -482,6 +546,19 @@ export default function App() {
           <div className="px-3 py-1.5 text-[11px] text-[var(--ink-faint)] font-mono border-b border-[var(--border)] flex items-center gap-2">
             <span>{filteredIndividuals.length} individu{filteredIndividuals.length !== 1 ? 's' : ''}</span>
             {query && <span className="truncate">· «{query}»</span>}
+            <button
+              onClick={() => { setFavOnly((v) => !v); haptic('light'); }}
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border transition-colors"
+              style={{
+                color: favOnly ? 'var(--warn)' : 'var(--ink-faint)',
+                borderColor: favOnly ? 'var(--warn)' : 'var(--border)',
+                background: favOnly ? 'color-mix(in oklch, var(--warn) 12%, transparent)' : 'transparent',
+              }}
+              title="Afficher uniquement les favoris"
+            >
+              <Icon.Star style={{ width: 10, height: 10, fill: favOnly ? 'var(--warn)' : 'none' }} />
+              {favorites.size > 0 && <span>{favorites.size}</span>}
+            </button>
             {datasets.length > 0 && (
               <div className="ml-auto flex items-center gap-1">
                 <button onClick={() => exportCSV(merged.individuals)} className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-[var(--border)] text-[var(--ink-faint)] hover:text-[var(--ink)] hover:bg-[var(--surface-hover)]" title="Exporter CSV">CSV</button>
@@ -509,6 +586,7 @@ export default function App() {
                   `}
                 >
                   <div className={`text-sm font-medium leading-tight truncate ${masked ? 'is-private' : ''}`}>
+                    {isFav(p.id) && <span className="mr-1" style={{ color: 'var(--warn)' }}>★</span>}
                     {p.name.display}
                   </div>
                   <div className="text-[11px] text-[var(--ink-faint)] font-mono mt-0.5 flex items-center gap-1.5">
@@ -552,7 +630,7 @@ export default function App() {
                 <span className="text-sm">Sélectionnez un individu dans la liste</span>
               </div>
             ) : (
-              <ViewRouter tab={activeTab} person={selectedPerson} data={merged} onNavigate={navigateTo} isPrivate={isPrivate} onEditPerson={handleEditPerson} />
+              <ViewRouter tab={activeTab} person={selectedPerson} data={merged} onNavigate={navigateTo} isPrivate={isPrivate} onEditPerson={handleEditPerson} isFav={isFav} onToggleFav={toggleFav} />
             )}
           </div>
         </main>
@@ -562,7 +640,7 @@ export default function App() {
       {isMobile && datasets.length > 0 && (
         <>
           <input ref={mobileFileRef} type="file" accept=".ged,.gedcom,.csv" multiple className="hidden"
-            onChange={(e) => { e.target.files && void loadFiles(Array.from(e.target.files)); e.target.value = ''; }} />
+            onChange={(e) => { if (e.target.files) void loadFiles(Array.from(e.target.files)); e.target.value = ''; }} />
           <MobileBottomNav
             mobilePane={mobilePane}
             activeTab={activeTab}
@@ -579,11 +657,14 @@ export default function App() {
             onOpenSettings={() => setShowSettings(true)}
             onOpenHelp={() => setShowHelp(true)}
             onReset={() => {
-              setDatasets([]); setSelectedId(null); setMobilePane('list');
-              try { localStorage.removeItem(STORAGE_KEYS.DATASETS); localStorage.removeItem(STORAGE_KEYS.SELECTED_ID); } catch {}
+              setDatasets([]); setSelectedId(null); setMobilePane('list'); setFavOnly(false);
+              clearFavorites(); clearRecent();
+              try { localStorage.removeItem(STORAGE_KEYS.DATASETS); localStorage.removeItem(STORAGE_KEYS.SELECTED_ID); } catch { /* ignore */ }
             }}
             onAddFiles={() => mobileFileRef.current?.click()}
             onSelectPerson={(id) => { navigateTo(id); setMobilePane('profile'); }}
+            favoritePersons={favoritePersons}
+            recentPersons={recentPersons}
           />
         </>
       )}
@@ -618,13 +699,15 @@ interface ViewRouterProps {
   onNavigate: (id: string) => void;
   isPrivate: (p: Individual | null | undefined) => boolean;
   onEditPerson: (updated: Individual) => void;
+  isFav: (id: string) => boolean;
+  onToggleFav: (id: string) => void;
 }
 
-function ViewRouter({ tab, person, data, onNavigate, onEditPerson }: ViewRouterProps) {
+function ViewRouter({ tab, person, data, onNavigate, onEditPerson, isFav, onToggleFav }: ViewRouterProps) {
   const { individuals, families } = data;
 
   if (tab === 'profile') {
-    return <ProfileView person={person} individuals={individuals} families={families} onSelect={onNavigate} onEditPerson={onEditPerson} />;
+    return <ProfileView person={person} individuals={individuals} families={families} onSelect={onNavigate} onEditPerson={onEditPerson} isFav={isFav(person.id)} onToggleFav={onToggleFav} />;
   }
   if (tab === 'ancestors') {
     return <AncestorsView person={person} individuals={individuals} families={families} onSelect={onNavigate} />;

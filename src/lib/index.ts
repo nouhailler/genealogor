@@ -11,6 +11,8 @@ export * from './republican-calendar';
 export * from './place-gazetteer';
 export * from './archives-templates';
 export * from './privacy';
+export * from './favorites';
+export * from './share';
 export * from './family-book';
 export * from './attachment-store';
 export * from './sample-ged';

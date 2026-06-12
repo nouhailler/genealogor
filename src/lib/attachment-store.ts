@@ -227,7 +227,7 @@ export async function exportPersonZip(personId: string, personName: string): Pro
   for (const att of items) {
     i++;
     const folder = att.kind === 'acte' ? 'actes' : 'photos';
-    const base = `${String(i).padStart(2, '0')}-${(att.filename || 'fichier').replace(/[\/\\?%*:|"<>]/g, '_')}`;
+    const base = `${String(i).padStart(2, '0')}-${(att.filename || 'fichier').replace(/[/\\?%*:|"<>]/g, '_')}`;
     if (att.storage === 'local' && att.blob) {
       zip.file(`${folder}/${base}`, att.blob);
     }
@@ -244,7 +244,7 @@ export async function exportPersonZip(personId: string, personName: string): Pro
   }
   zip.file('metadata.json', JSON.stringify(meta, null, 2));
   const blob = await zip.generateAsync({ type: 'blob' });
-  const safeName = (personName || personId).replace(/[\/\\?%*:|"<>]/g, '_');
+  const safeName = (personName || personId).replace(/[/\\?%*:|"<>]/g, '_');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `${safeName}-dossier-${new Date().toISOString().slice(0, 10)}.zip`;

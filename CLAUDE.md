@@ -5,13 +5,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev        # start Vite dev server (HMR)
-npm run build      # tsc -b && vite build → dist/
-npm run lint       # ESLint (TypeScript + react-hooks + react-refresh)
-npm run preview    # serve the dist/ build locally
+npm run dev          # start Vite dev server (HMR)
+npm run build        # tsc -b && vite build → dist/
+npm run test         # Vitest — 104 unit tests (parser, calendars, Sosa/Aboville)
+npm run lint         # ESLint (TypeScript + react-hooks + react-refresh) — keep at 0 errors
+npm run preview      # serve the dist/ build locally
+npm run validate:pwa # 14 checks on dist/ (manifest, icons, sw)
 ```
-
-No test runner is configured yet. Playwright is installed (`playwright`) but has no test files.
 
 ## Architecture
 
@@ -30,7 +30,7 @@ No React Router. Tab navigation is plain `useState<TabId>`. `ViewRouter` (bottom
 
 ### `src/types/genealogy.ts`
 
-Single source of truth for all TypeScript types: `Individual`, `Family`, `GDate`, `GEvent`, `GenealogyData`, `Dataset`, `TabId`, `ViewProps`, `AppSettings`, `AdvancedFilter`, `ValidationError`, `StatsAggregates`, `GeocodedPlace`, `DuplicateCandidate`, etc. Read this file first when working on a new view.
+Single source of truth for all TypeScript types: `Individual`, `Family`, `GDate`, `GEvent`, `GenealogyData`, `Dataset`, `TabId`, `ViewProps`, `PermalinkState`, `AdvancedFilter`, `ValidationError`, `StatsAggregates`, `GeocodedPlace`, `DuplicateCandidate`, etc. Read this file first when working on a new view.
 
 ### `src/lib/` — pure business logic
 
@@ -48,6 +48,11 @@ Framework-free TypeScript modules. All re-exported from `src/lib/index.ts`. Nota
 | `place-gazetteer.ts` | 101 INSEE département codes |
 | `archives-templates.ts` | 97 departmental archive URLs |
 | `privacy.ts` | `usePrivacy()`, `shouldMask()` |
+| `favorites.ts` | `useFavorites()`, `useRecentlyViewed()`, `haptic()` |
+| `share.ts` | `sharePerson()` — Web Share API + clipboard fallback |
+| `ai-client.ts` | `aiCall` / `aiCallMultimodal` — 4 AI providers |
+| `advanced-filter.ts` | `applyAdvancedFilter`, `exportCSV`, `exportGEDCOM` |
+| `historical-events.ts` | French historical events for TimelineView |
 | `attachment-store.ts` | IndexedDB attachment storage |
 
 ### `src/components/views/` — one file per tab
@@ -82,4 +87,8 @@ Users can load several GEDCOM/CSV files simultaneously. `mergeDatasets()` in `Ap
 
 ### Prototype reference
 
-`prototype/Genealogor.html` is the high-fidelity design reference. It runs React + Babel in-browser and is **not** a deployable build. When a UI behaviour is unclear, consult the prototype. Do not delete or modify it.
+The high-fidelity design reference lives **outside this repo**, in
+`../design_handoff_genealogor/prototype/` (entry point `Genealogor.html`, plus ~45 `.jsx`/`.js`
+modules loaded via Babel in-browser). It is **not** a deployable build. When a UI behaviour is
+unclear, consult the prototype — `mobile-ui-kit.jsx` in particular holds mobile patterns not yet
+ported (long-press, pull-to-refresh, edge-swipe-back, skeletons). Do not delete or modify it.

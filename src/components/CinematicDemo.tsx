@@ -171,7 +171,7 @@ export function CinematicOverlay({ callbacks, onStop }: Props) {
       stopped = true;
       pending.forEach(clearTimeout);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);  
 
   return (
     <>
