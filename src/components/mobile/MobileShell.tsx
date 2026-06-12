@@ -3,17 +3,7 @@
 import type { TabId } from '@/types/genealogy';
 import type { Individual } from '@/types/genealogy';
 import { formatVital } from '@/components/ui-kit';
-
-// ── Tab configuration ─────────────────────────────────────────────────────────
-
-/** Tabs shown directly in the bottom nav. 'liste' is not a TabId — it opens the list pane. */
-export const PRIMARY_MOBILE_TABS = ['liste', 'profile', 'ancestors', 'descendants'] as const;
-export type PrimaryMobileTab = (typeof PRIMARY_MOBILE_TABS)[number];
-
-/** All other tabs live in the "Plus" sheet. */
-export const OVERFLOW_TABS: TabId[] = [
-  'implex', 'compare', 'graph', 'timeline', 'places', 'map', 'media', 'stats', 'validation', 'ai',
-];
+import { PRIMARY_MOBILE_TABS, OVERFLOW_TABS, type PrimaryMobileTab } from '@/components/mobile/mobile-tabs';
 
 const TAB_LABELS: Record<string, string> = {
   liste: 'Liste', profile: 'Profil', ancestors: 'Ascend.', descendants: 'Descend.',

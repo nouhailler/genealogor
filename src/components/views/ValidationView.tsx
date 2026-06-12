@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import type { Individual, Family } from '@/types/genealogy';
 import { formatVital, Icon } from '@/components/ui-kit';
-import MergeModal, { isResolved, markResolved, unmarkResolved } from '@/components/views/MergeModal';
+import MergeModal from '@/components/views/MergeModal';
+import { isResolved, markResolved, unmarkResolved } from '@/lib/merge-resolved';
 import type { DuplicatePair } from '@/components/views/MergeModal';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -270,7 +271,7 @@ export default function ValidationView({ individuals, families, onNavigate }: Pr
   const duplicates = useMemo(() => {
     void resolvedTick;
     return allDuplicates.filter((d) => !isResolved(d.a.id, d.b.id));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [allDuplicates, resolvedTick]);
 
   const resolvedCount = allDuplicates.length - duplicates.length;

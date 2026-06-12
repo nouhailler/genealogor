@@ -1,33 +1,8 @@
 // Assisted duplicate-merge modal.
-// Also exports localStorage helpers used by ValidationView.
 import { useState } from 'react';
+import { markResolved } from '@/lib/merge-resolved';
 import { Icon } from '@/components/ui-kit';
 import type { Individual, Family } from '@/types/genealogy';
-
-// ── Resolved-pairs persistence ────────────────────────────────────────────────
-
-const MERGE_RESOLVED_KEY = 'genealogor.mergesResolved';
-
-function loadResolved(): Set<string> {
-  try { return new Set(JSON.parse(localStorage.getItem(MERGE_RESOLVED_KEY) || '[]') as string[]); }
-  catch { return new Set(); }
-}
-function saveResolved(set: Set<string>): void {
-  try { localStorage.setItem(MERGE_RESOLVED_KEY, JSON.stringify(Array.from(set))); } catch { /* ignore */ }
-}
-function pairKey(a: string, b: string): string {
-  return [a, b].sort().join('|');
-}
-
-export function isResolved(idA: string, idB: string): boolean {
-  return loadResolved().has(pairKey(idA, idB));
-}
-export function markResolved(idA: string, idB: string): void {
-  const s = loadResolved(); s.add(pairKey(idA, idB)); saveResolved(s);
-}
-export function unmarkResolved(idA: string, idB: string): void {
-  const s = loadResolved(); s.delete(pairKey(idA, idB)); saveResolved(s);
-}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

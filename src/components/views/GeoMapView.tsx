@@ -43,7 +43,7 @@ interface Props {
   onNavigate: (id: string) => void;
 }
 
-export default function GeoMapView({ individuals, families, onNavigate: _onNavigate }: Props) {
+export default function GeoMapView({ individuals, families }: Props) {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const layerRef = useRef<L.LayerGroup | null>(null);

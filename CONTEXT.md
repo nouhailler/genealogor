@@ -17,8 +17,9 @@ Cible : généalogistes francophones (calendrier républicain, départements INS
 ## État actuel : production
 
 La migration prototype → production est **complète**. L'application tourne sur Vite + React 19 +
-TypeScript, déployée sur Netlify. Le dossier `prototype/` est conservé uniquement comme
-**référence visuelle** — ne pas le modifier ni le supprimer.
+TypeScript, déployée sur Netlify. Le prototype de référence visuelle vit **hors de ce repo**, dans
+`../design_handoff_genealogor/prototype/` (entrée `Genealogor.html` + ~45 modules `.jsx`/`.js`) —
+ne pas le modifier ni le supprimer.
 
 ### Stack
 
@@ -46,14 +47,22 @@ TypeScript, déployée sur Netlify. Le dossier `prototype/` est conservé unique
 └── PULL_REQUEST_TEMPLATE.md   # Checklist de validation post-déploiement (7 sections)
 
 scripts/
-└── validate-pwa.mjs           # Validation build PWA — 14 contrôles, modules Node natifs
+├── validate-pwa.mjs           # Validation build PWA — 14 contrôles, modules Node natifs
+└── encrypt-gedcom.mjs         # Chiffrement GEDCOM local (PBKDF2 + AES-GCM-256)
 
 public/
-├── favicon.svg
-├── icons.svg
-└── icons/
-    ├── icon-192.png            # PWA icon 192×192
-    └── icon-512.png            # PWA icon 512×512 (maskable)
+├── favicon.svg                # Logo Genealogor (éclair violet)
+├── favicon.ico                # Favicon 32×32
+├── apple-touch-icon.png       # Icône iOS 180×180
+├── icon-source.svg            # Source SVG de l'icône PWA (arbre généalogique)
+├── icons/
+│   ├── icon-192.png           # PWA icon 192×192 (any)
+│   ├── icon-512.png           # PWA icon 512×512 (any)
+│   ├── icon-192-maskable.png  # PWA icon 192×192 (maskable, fond opaque)
+│   └── icon-512-maskable.png  # PWA icon 512×512 (maskable, fond opaque)
+└── data/
+    ├── demo.ged               # GEDCOM fictif public (famille Bertrand, 15 individus)
+    └── famille.ged.enc        # GEDCOM familial chiffré AES-GCM (binaire)
 
 src/
 ├── App.tsx                    # Shell : état global, routing par onglets, session localStorage
@@ -73,7 +82,14 @@ src/
 │   ├── republican-calendar.test.ts # 36 tests unitaires Vitest
 │   ├── place-gazetteer.ts     # 101 départements INSEE
 │   ├── archives-templates.ts  # 97 URLs archives départementales + portails
+│   ├── historical-events.ts   # Événements historiques français (TimelineView)
 │   ├── privacy.ts             # usePrivacy(), shouldMask()
+│   ├── favorites.ts           # useFavorites(), useRecentlyViewed(), haptic()
+│   ├── share.ts               # sharePerson() — Web Share API + fallback presse-papiers
+│   ├── onboarding.ts          # useOnboarding(), markOnboarded()
+│   ├── ai-client.ts           # aiCall / aiCallMultimodal — couche LLM (4 fournisseurs)
+│   ├── advanced-filter.ts     # SearchFilter, applyAdvancedFilter, exportCSV/GEDCOM
+│   ├── merge-resolved.ts      # Persistance des paires de doublons résolues
 │   ├── family-book.ts         # FamilyBook.generate (PDF HTML imprimable)
 │   ├── attachment-store.ts    # AttachmentStore (IndexedDB)
 │   ├── ai-features.ts         # AiFeatures (NL query, Wikipedia, bio, lieux…)
@@ -81,6 +97,7 @@ src/
 ├── components/
 │   ├── views/                 # 13 vues — une par TabId
 │   │   ├── ProfileView.tsx
+│   │   ├── EditPersonModal.tsx # Édition in-app : nom, sexe, dates, lieu, profession, note
 │   │   ├── AncestorsView.tsx  # + PedigreeChart.tsx + HourglassView.tsx
 │   │   ├── DescendantsView.tsx
 │   │   ├── ImplexView.tsx
@@ -93,22 +110,24 @@ src/
 │   │   ├── StatsView.tsx      # inclut AgePyramid
 │   │   ├── ValidationView.tsx
 │   │   ├── AiLabView.tsx
-│   │   ├── SettingsPanel.tsx  # couche LLM — aiCall / aiCallMultimodal (4 providers)
+│   │   ├── SettingsPanel.tsx  # UI de configuration IA (la couche LLM est dans lib/ai-client.ts)
 │   │   ├── BiographyPanel.tsx
 │   │   ├── BusinessCard.tsx
 │   │   ├── PresentationMode.tsx
 │   │   └── MergeModal.tsx
 │   ├── mobile/
-│   │   ├── MobileShell.tsx    # MobileBottomNav + MobileMoreSheet
+│   │   ├── MobileShell.tsx    # MobileBottomNav + MobileMoreSheet (favoris/récents inclus)
+│   │   ├── mobile-tabs.ts     # PRIMARY_MOBILE_TABS / OVERFLOW_TABS
 │   │   └── MobileOnboarding.tsx
 │   ├── media/
 │   │   ├── AttachmentDetail.tsx
 │   │   └── AttachmentsSection.tsx
+│   ├── PassphraseScreen.tsx   # Écran de saisie passphrase (mode ?dataset=famille)
 │   ├── ui-kit.tsx             # Icon, formatVital, sexLabel…
-│   ├── AdvancedSearch.tsx
+│   ├── AdvancedSearch.tsx     # UI des filtres (logique dans lib/advanced-filter.ts)
 │   ├── UploadZone.tsx
-│   ├── AuthGate.tsx
 │   └── HelpPanel.tsx
+│   ├── CinematicDemo.tsx      # Démo cinématique — CinematicOverlay + DemoCallbacks
 └── store/                     # Vide — Zustand disponible si besoin
 ```
 
@@ -160,6 +179,8 @@ Au relancement de la PWA, la session est restaurée automatiquement sans action 
 | `genealogor.selectedId` | PersonId de la dernière personne sélectionnée |
 | `genealogor.activeTab` | TabId du dernier onglet actif |
 | `genealogor.theme` | `'light'` ou `'dark'` |
+| `genealogor.favorites` | JSON `[PersonId]` — favoris (étoile dans ProfileView, chip ★ dans la liste) |
+| `genealogor.recent` | JSON `[PersonId]` — 12 dernières personnes consultées |
 | `genealogor.aiSettings` | JSON `{provider, claude?, openai?, openrouter?, ollama?}` — config fournisseur IA |
 | `genealogor.shortBios` · `narratives` · `semanticDedupeCache` · etc. | Caches des résultats IA |
 
@@ -205,21 +226,28 @@ Toujours utiliser `var(--token)` — ne jamais coder une couleur en dur.
 - **Masque vivants** (`Privacy`) : `filter: blur` sur personnes sans date de décès nées après `année-100`.
 - **Citations par fait** : pièces jointes liées à un `factKind` (birth/marriage/death/…).
 - **Export** : CSV et GEDCOM depuis la barre de liste ; GEDCOM 5.5.1 et 7.0 depuis le sérialiseur.
+- **Édition in-app** : bouton crayon dans `ProfileView` → `EditPersonModal` (nom, sexe, naissance, décès, profession, note) ; sauvegarde dans le dataset + re-sérialisation GEDCOM → persist localStorage.
+- **Favoris & récents** : étoile dans `ProfileView`, chip ★ (filtre favoris) dans la liste, marqueur ★ sur les lignes, sections « Favoris / Récemment consultés » dans la feuille « Plus » mobile — `useFavorites`/`useRecentlyViewed` (`src/lib/favorites.ts`), haptique légère au toggle.
+- **Partage** : bouton partage dans `ProfileView` → Web Share API, fallback copie presse-papiers (`src/lib/share.ts`) ; l'URL partagée est un permalink.
+- **Permalinks** : l'URL reflète l'état courant (`?person=&tab=&q=&ft=1&fav=1&adv={json}`, `replaceState`) et est relue au chargement — priorité sur la session localStorage ; `?dataset=` est préservé.
+- **Datasets pré-chargeables** : `?dataset=demo` (fetch + parse) et `?dataset=famille` (fetch + déchiffrement Web Crypto + parse) — session existante prioritaire.
+- **Démo cinématique** : bouton ◉ (ambre) dans la topbar → `CinematicOverlay` (`src/components/CinematicDemo.tsx`) ; curseur animé CSS, ripple au clic, légende frosted-glass en bas, 13 phases en boucle couvrant toutes les vues principales ; `data-demo-id` sur les éléments cibles (onglets, liste, recherche).
 
 ## Comportements non encore implémentés
 
-- Favoris & récents (localStorage `useFavorites` / `useRecentlyViewed`)
-- Long-press / clic droit → menu contextuel
-- Haptique (Vibration API)
-- Transitions slide entre liste↔détail et swipe-back mobile
-- Partage via Web Share API (`sharePerson`)
+Référence : `../design_handoff_genealogor/prototype/mobile-ui-kit.jsx`.
+
+- Long-press / clic droit → menu contextuel (`useLongPress`)
+- Transitions slide entre liste↔détail et swipe-back mobile (`useEdgeSwipeBack`)
+- Pull-to-refresh et skeletons de chargement (`PullToRefresh`, `Skeleton`)
+- Haptique généralisée (le helper `haptic()` existe dans `src/lib/favorites.ts`, branché uniquement sur les favoris)
 
 ---
 
 ## Fonctionnalités IA (toutes optionnelles)
 
 Configurables dans `SettingsPanel` (icône ⚙️) → 4 fournisseurs.
-Couche d'abstraction : `aiCall` / `aiCallMultimodal` exportées depuis `src/components/views/SettingsPanel.tsx`.
+Couche d'abstraction : `aiCall` / `aiCallMultimodal` exportées depuis `src/lib/ai-client.ts`.
 
 | Fournisseur | Endpoint | Auth | Modèle par défaut |
 |---|---|---|---|
@@ -278,6 +306,7 @@ Config : `vitest.config.ts` (séparé de `vite.config.ts` pour ne pas polluer le
 | `npm run test` | 104 tests unitaires Vitest |
 | `npm run validate:pwa` | 14 contrôles sur `dist/` (manifest, icônes, sw, base path…) |
 | `npm run lint` | ESLint TypeScript + react-hooks + react-refresh |
+| `npm run encrypt:gedcom` | Chiffre un GEDCOM → `public/data/famille.ged.enc` |
 
 Le script `scripts/validate-pwa.mjs` utilise uniquement les modules Node natifs (fs, path, zlib).
 Le template `.github/PULL_REQUEST_TEMPLATE.md` est chargé automatiquement à la création de PR.
@@ -322,6 +351,6 @@ GEDCOM_PASSPHRASE="votre-phrase-secrète" npm run encrypt:gedcom -- mes-donnees.
 
 | Priorité | Tâche |
 |---|---|
-| 1 | Tests unitaires — sérialiseurs GEDCOM (parser, calendrier républicain, Sosa/Aboville couverts) |
-| 2 | Favoris & récents, long-press, haptique, transitions slide mobile |
-| 3 | Accessibilité — audit clavier/ARIA des modales, sheets et graphe |
+| 1 | Long-press (menu contextuel), transitions slide mobile, pull-to-refresh, skeletons |
+| 2 | Accessibilité — audit clavier/ARIA des modales, sheets et graphe |
+| 3 | Netlify Function proxy pour Ollama (mixed-content HTTPS→HTTP) |

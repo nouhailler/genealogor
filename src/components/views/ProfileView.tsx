@@ -3,6 +3,7 @@ import type { Individual, Family, GDate } from '@/types/genealogy';
 import { Icon, formatVital, sexLabel, sexColor } from '@/components/ui-kit';
 import { isInPeriod, fromGregorian, format as formatRep, formatYear } from '@/lib/republican-calendar';
 import { shouldMask } from '@/lib/privacy';
+import { sharePerson, canShare, type ShareResult } from '@/lib/share';
 import BusinessCard from '@/components/views/BusinessCard';
 import PresentationMode from '@/components/views/PresentationMode';
 import BiographyPanel from '@/components/views/BiographyPanel';
@@ -199,13 +200,23 @@ interface Props {
   families: Map<string, Family>;
   onSelect?: (id: string) => void;
   onEditPerson?: (updated: Individual) => void;
+  isFav?: boolean;
+  onToggleFav?: (id: string) => void;
 }
 
-export default function ProfileView({ person, individuals, families, onSelect, onEditPerson }: Props) {
+export default function ProfileView({ person, individuals, families, onSelect, onEditPerson, isFav, onToggleFav }: Props) {
   const [factCounts, setFactCounts] = useState<Record<string, number>>({});
   const [showCard, setShowCard]           = useState(false);
   const [showPresentation, setShowPresentation] = useState(false);
   const [showEdit, setShowEdit]           = useState(false);
+  const [shareResult, setShareResult]     = useState<ShareResult | null>(null);
+
+  const handleShare = async () => {
+    if (!person) return;
+    const result = await sharePerson(person);
+    setShareResult(result);
+    setTimeout(() => setShareResult(null), 2000);
+  };
 
   useEffect(() => {
     setFactCounts({});
@@ -276,6 +287,27 @@ export default function ProfileView({ person, individuals, families, onSelect, o
           </div>
           {/* Action buttons */}
           <div className="flex items-center gap-1 shrink-0">
+            {onToggleFav && (
+              <button onClick={() => onToggleFav(person.id)}
+                className="h-8 px-2 rounded hover:bg-[var(--surface-hover)]"
+                style={{ color: isFav ? 'var(--warn)' : 'var(--ink-faint)' }}
+                title={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}>
+                <Icon.Star className="size-4" style={{ fill: isFav ? 'var(--warn)' : 'none' }} />
+              </button>
+            )}
+            {canShare() && (
+              <button onClick={handleShare}
+                className="h-8 px-2 rounded text-[var(--ink-faint)] hover:text-[var(--ink)] hover:bg-[var(--surface-hover)] relative"
+                title="Partager cette fiche">
+                {shareResult === 'shared' || shareResult === 'copied'
+                  ? <Icon.Check className="size-4" style={{ color: 'var(--success)' }} />
+                  : <Icon.Share className="size-4" />}
+                {shareResult === 'copied' && (
+                  <span className="absolute top-full right-0 mt-1 px-2 py-1 rounded text-[10.5px] whitespace-nowrap z-10"
+                    style={{ background: 'var(--ink)', color: 'var(--bg)' }}>Lien copié</span>
+                )}
+              </button>
+            )}
             {onEditPerson && (
               <button onClick={() => setShowEdit(true)}
                 className="h-8 px-2 rounded text-[var(--ink-faint)] hover:text-[var(--ink)] hover:bg-[var(--surface-hover)]"

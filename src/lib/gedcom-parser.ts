@@ -21,7 +21,7 @@ function parseLine(raw: string): GedNode | null {
 }
 
 function buildTree(text: string): { root: GedNode; errors: Array<{ line?: number; message: string }> } {
-  text = text.replace(/^﻿/, '').replace(/\r\n?/g, '\n');
+  text = text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
   const lines = text.split('\n').filter((l) => l.trim().length > 0);
   const root: GedNode = { level: -1, xref: null, tag: 'ROOT', value: '', children: [] };
   const stack: GedNode[] = [root];
@@ -104,8 +104,8 @@ function parseDate(str: string | undefined): GDate {
 
 function parseName(node: GedNode): IndividualName {
   const raw = node.value || '';
-  let given = '', surname = '', suffix = '';
-  const m = raw.match(/^([^\/]*)\/([^\/]*)\/(.*)$/);
+  let given: string, surname = '', suffix = '';
+  const m = raw.match(/^([^/]*)\/([^/]*)\/(.*)$/);
   if (m) {
     given = m[1].trim();
     surname = m[2].trim();
