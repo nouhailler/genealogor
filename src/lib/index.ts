@@ -13,6 +13,8 @@ export * from './archives-templates';
 export * from './privacy';
 export * from './favorites';
 export * from './share';
+export * from './tips';
+export * from './demo-scripts';
 export * from './family-book';
 export * from './attachment-store';
 export * from './sample-ged';

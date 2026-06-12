@@ -1,122 +1,19 @@
+// Cinematic demo overlay — virtual cursor, ripple and captions driven by a
+// step script. Scripts (full tour + per-view demos) live in @/lib/demo-scripts.
 import { useState, useEffect, useRef } from 'react';
-import type { TabId } from '@/types/genealogy';
-
-export interface DemoCallbacks {
-  navigateTo: (id: string) => void;
-  setActiveTab: (tab: TabId) => void;
-  getPersonIds: () => string[];
-}
-
-interface Step {
-  caption: string;
-  target?: string;
-  action?: (c: DemoCallbacks) => void;
-  hold: number;
-  click?: boolean;
-}
-
-const SCRIPT: Step[] = [
-  {
-    caption: 'Genealogor — explorez votre histoire familiale',
-    hold: 2600,
-  },
-  {
-    caption: 'Sélectionnez une personne dans la liste',
-    target: '[data-demo-id="person-0"]',
-    action: (c) => {
-      const ids = c.getPersonIds();
-      if (ids[0]) c.navigateTo(ids[0]);
-      c.setActiveTab('profile');
-    },
-    hold: 2000,
-    click: true,
-  },
-  {
-    caption: 'Profil complet : naissance, décès, mariage, profession',
-    target: '[data-demo-id="tab-profile"]',
-    hold: 2600,
-  },
-  {
-    caption: 'Arbre des ascendants — éventail, pedigree ou sablier',
-    target: '[data-demo-id="tab-ancestors"]',
-    action: (c) => c.setActiveTab('ancestors'),
-    hold: 2500,
-    click: true,
-  },
-  {
-    caption: 'Descendants numérotés selon la méthode d\'Aboville',
-    target: '[data-demo-id="tab-descendants"]',
-    action: (c) => c.setActiveTab('descendants'),
-    hold: 2500,
-    click: true,
-  },
-  {
-    caption: 'Graphe relationnel interactif — moteur d3-force',
-    target: '[data-demo-id="tab-graph"]',
-    action: (c) => c.setActiveTab('graph'),
-    hold: 2500,
-    click: true,
-  },
-  {
-    caption: 'Frise chronologique de toute la famille',
-    target: '[data-demo-id="tab-timeline"]',
-    action: (c) => c.setActiveTab('timeline'),
-    hold: 2200,
-    click: true,
-  },
-  {
-    caption: 'Carte des lieux — géocodage Nominatim',
-    target: '[data-demo-id="tab-map"]',
-    action: (c) => c.setActiveTab('map'),
-    hold: 2200,
-    click: true,
-  },
-  {
-    caption: 'Statistiques et pyramide des âges de l\'arbre',
-    target: '[data-demo-id="tab-stats"]',
-    action: (c) => c.setActiveTab('stats'),
-    hold: 2500,
-    click: true,
-  },
-  {
-    caption: 'Qualité : détection des incohérences et doublons',
-    target: '[data-demo-id="tab-validation"]',
-    action: (c) => c.setActiveTab('validation'),
-    hold: 2200,
-    click: true,
-  },
-  {
-    caption: 'IA intégrée : biographies, OCR, recherche sémantique',
-    target: '[data-demo-id="tab-ai"]',
-    action: (c) => c.setActiveTab('ai'),
-    hold: 2400,
-    click: true,
-  },
-  {
-    caption: 'Recherche instantanée dans toute la généalogie',
-    target: '[data-demo-id="search-input"]',
-    hold: 1800,
-  },
-  {
-    caption: 'Passez à une autre personne et recommencez…',
-    target: '[data-demo-id="person-1"]',
-    action: (c) => {
-      const ids = c.getPersonIds();
-      const id = ids[1] ?? ids[0];
-      if (id) c.navigateTo(id);
-      c.setActiveTab('profile');
-    },
-    hold: 1600,
-    click: true,
-  },
-];
+import { TOUR_SCRIPT } from '@/lib/demo-scripts';
+import type { Step, DemoCallbacks } from '@/lib/demo-scripts';
 
 interface Props {
   callbacks: DemoCallbacks;
   onStop: () => void;
+  /** Custom step list — defaults to the full app tour. */
+  script?: Step[];
+  /** Loop forever (full tour) or stop after the last step (view demos). */
+  loop?: boolean;
 }
 
-export function CinematicOverlay({ callbacks, onStop }: Props) {
+export function CinematicOverlay({ callbacks, onStop, script = TOUR_SCRIPT, loop = true }: Props) {
   const [pos, setPos] = useState({ x: -100, y: -100 });
   const [caption, setCaption] = useState('');
   const [captionKey, setCaptionKey] = useState(0);
@@ -124,6 +21,8 @@ export function CinematicOverlay({ callbacks, onStop }: Props) {
   const [showRipple, setShowRipple] = useState(false);
   const cbRef = useRef(callbacks);
   useEffect(() => { cbRef.current = callbacks; }, [callbacks]);
+  const onStopRef = useRef(onStop);
+  useEffect(() => { onStopRef.current = onStop; }, [onStop]);
 
   useEffect(() => {
     let stopped = false;
@@ -137,17 +36,16 @@ export function CinematicOverlay({ callbacks, onStop }: Props) {
 
     function run(idx: number) {
       if (stopped) return;
-      const step = SCRIPT[idx % SCRIPT.length];
+      const step = script[idx % script.length];
 
       setCaption(step.caption);
       setCaptionKey(k => k + 1);
 
-      if (step.target) {
-        const el = document.querySelector(step.target);
-        if (el) {
-          const r = el.getBoundingClientRect();
-          setPos({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
-        }
+      const el = step.target ? document.querySelector(step.target) : null;
+      if (el) {
+        const r = el.getBoundingClientRect();
+        const [fx, fy] = step.anchor ?? [0.5, 0.5];
+        setPos({ x: r.left + r.width * fx, y: r.top + r.height * fy });
       } else {
         setPos({ x: window.innerWidth / 2, y: window.innerHeight / 3 });
       }
@@ -161,7 +59,11 @@ export function CinematicOverlay({ callbacks, onStop }: Props) {
           later(() => setShowRipple(false), 450);
         }
         step.action?.(cbRef.current);
-        later(() => run((idx + 1) % SCRIPT.length), step.hold);
+        later(() => {
+          const next = idx + 1;
+          if (next >= script.length && !loop) { onStopRef.current(); return; }
+          run(next % script.length);
+        }, step.hold);
       }, arrivalDelay);
     }
 
@@ -171,7 +73,9 @@ export function CinematicOverlay({ callbacks, onStop }: Props) {
       stopped = true;
       pending.forEach(clearTimeout);
     };
-  }, []);  
+    // script/loop are fixed for the lifetime of one overlay mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
