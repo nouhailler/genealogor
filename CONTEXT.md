@@ -155,6 +155,8 @@ interface Individual {
   note: string;
   famc: FamilyId[];   // familles où cet individu est enfant (→ parents)
   fams: FamilyId[];   // familles où cet individu est conjoint
+  gphotosAlbum?: string;  // lien de partage Google Photos — tag GEDCOM custom _GPHOTOS
+  portraitUrl?: string;   // URL d'image (lh3.googleusercontent.com) — tag GEDCOM custom _PORTRAIT
 }
 
 interface Dataset extends GenealogyData {
@@ -187,6 +189,8 @@ Au relancement de la PWA, la session est restaurée automatiquement sans action 
 | `genealogor.onboarded` | `'1'` une fois l'onboarding 4 diapos terminé ou passé |
 | `genealogor.tipsHidden` | JSON `{tabId: true}` — bandeaux d'astuces masqués par vue |
 | `genealogor.aiSettings` | JSON `{provider, claude?, openai?, openrouter?, ollama?}` — config fournisseur IA |
+| `genealogor.gphotosProxy` | URL du relais Google Photos si personnalisée (absente = fonction Netlify par défaut) |
+| `genealogor.gphotosCache` | JSON `{albumUrl: {urls, at}}` — miniatures extraites, TTL 7 jours |
 | `genealogor.shortBios` · `narratives` · `semanticDedupeCache` · etc. | Caches des résultats IA |
 
 Erreurs de quota `localStorage` silencieusement ignorées. Le reset mobile efface également ces clés.
@@ -240,6 +244,7 @@ Toujours utiliser `var(--token)` — ne jamais coder une couleur en dur.
 - **Onboarding** : 4 diapos au premier lancement (import, vues, IA, guidage) — plein écran sur mobile (swipe), carte centrée sur desktop (flèches/Entrée/Échap) ; s'affiche aussi sur l'écran d'upload ; persisté via `genealogor.onboarded`.
 - **Astuces par vue** : bandeau 💡 sous la barre d'onglets (`TipBar.tsx`, contenu dans `src/lib/tips.ts`) — 3 à 5 astuces en rotation par vue, boutons démo/aide, masquable par vue (persisté), réaffichable depuis l'aide.
 - **Démos guidées par vue** : bouton ▶ du bandeau d'astuces ou de l'aide → `CinematicOverlay` avec le script `VIEW_DEMOS[tab]` (3-4 étapes ancrées dans le conteneur de vue, jouées une fois sans boucle).
+- **Google Photos** (`GooglePhotosSection.tsx` + `src/lib/gphotos.ts`) : on colle dans la fiche le **lien de partage** d'un album Google Photos (stocké dans le tag GEDCOM `_GPHOTOS`) ; jusqu'à 10 miniatures sont extraites de la page d'album et affichées dans `ProfileView`. Cliquer une miniature ouvre la photo pleine taille hébergée par Google ; l'étoile sur une miniature la définit comme **portrait** du profil (tag `_PORTRAIT`), affiché dans l'en-tête de la fiche et en avatar dans la liste. La page d'album n'étant pas lisible côté navigateur (CORS), la récupération passe par un **petit relais générique** — fonction Netlify `netlify/functions/gphotos.mjs` par défaut, **URL configurable** dans les Paramètres pour l'auto-hébergement (Express/PHP/nginx). Extraction 100 % côté client (regex sur les URLs `lh3.googleusercontent.com/pw/…`, redimensionnables via le suffixe `=wNNN`), cache localStorage 7 jours. *L'API Photos Library de Google ayant été verrouillée (mars 2025), cette approche par lien partagé est la seule durable ; elle est non officielle et peut casser si Google change le format de ses pages d'album.*
 
 ## Comportements non encore implémentés
 
@@ -277,7 +282,7 @@ Un avertissement est affiché dans le panneau Paramètres. Usage local uniquemen
 
 ## Déploiement Netlify
 
-Stratégie : repo unique, branche `deploy/netlify`, application 100 % statique.
+Stratégie : repo unique, branche `deploy/netlify`, application quasi 100 % statique (une seule fonction serverless).
 
 | Aspect | Valeur |
 |---|---|
@@ -287,6 +292,7 @@ Stratégie : repo unique, branche `deploy/netlify`, application 100 % statique.
 | Redirects | `/* → /index.html` (SPA) |
 | Cache SW | `Cache-Control: no-cache` sur `sw.js` et `index.html` |
 | `base` Vite | non défini (sert à `/`) |
+| Fonctions | `netlify/functions/` — `gphotos.mjs` : relais CORS pour les pages d'album Google Photos (restreint aux hôtes `photos.app.goo.gl`/`photos.google.com`) ; URL configurable côté client pour l'auto-hébergement |
 | Ollama en prod | inopérant (mixed content HTTPS→HTTP) |
 | Clés IA | côté client pour l'instant — à proxifier via Netlify Function |
 

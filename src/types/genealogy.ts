@@ -50,6 +50,10 @@ export interface Individual {
   famc: FamilyId[];
   /** IDs of families where this person appears as a spouse */
   fams: FamilyId[];
+  /** Google Photos shared-album URL (custom GEDCOM tag _GPHOTOS) */
+  gphotosAlbum?: string;
+  /** Portrait image URL, usually a lh3.googleusercontent.com base URL (custom GEDCOM tag _PORTRAIT) */
+  portraitUrl?: string;
 }
 
 export interface Family {

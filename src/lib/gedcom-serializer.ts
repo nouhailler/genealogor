@@ -48,6 +48,8 @@ function serializeIndividual(p: Individual, lines: string[]): void {
   }
   if (p.occupation) lines.push(`1 OCCU ${p.occupation}`);
   if (p.note) lines.push(`1 NOTE ${escapeGedcom(p.note)}`);
+  if (p.gphotosAlbum) lines.push(`1 _GPHOTOS ${p.gphotosAlbum}`);
+  if (p.portraitUrl) lines.push(`1 _PORTRAIT ${p.portraitUrl}`);
   for (const fid of p.famc || []) lines.push(`1 FAMC ${fid}`);
   for (const fid of p.fams || []) lines.push(`1 FAMS ${fid}`);
 }
@@ -156,6 +158,8 @@ function serializeIndividual7(p: Individual, lines: string[]): void {
   }
   if (p.occupation) lines.push(`1 OCCU ${p.occupation}`);
   if (p.note) note7(lines, 1, p.note);
+  if (p.gphotosAlbum) lines.push(`1 _GPHOTOS ${p.gphotosAlbum}`);
+  if (p.portraitUrl) lines.push(`1 _PORTRAIT ${p.portraitUrl}`);
   for (const fid of p.famc || []) lines.push(`1 FAMC ${fid}`);
   for (const fid of p.fams || []) lines.push(`1 FAMS ${fid}`);
 }

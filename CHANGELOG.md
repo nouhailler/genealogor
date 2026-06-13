@@ -4,6 +4,31 @@ Format : [SemVer](https://semver.org) · Dates ISO 8601
 
 ---
 
+## [0.4.0] — 2026-06-13
+
+### Ajouté — Photos de profil & Google Photos
+
+- **Portrait par profil** : champ `portraitUrl` sur `Individual` (tag GEDCOM custom `_PORTRAIT`),
+  affiché dans l'en-tête de `ProfileView` et en avatar rond dans la liste des personnes (`App.tsx`).
+- **Album Google Photos par profil** : champ `gphotosAlbum` (tag GEDCOM custom `_GPHOTOS`) — on colle
+  le **lien de partage** d'un album dans la fiche.
+  - `src/components/GooglePhotosSection.tsx` : éditeur de lien, grille de jusqu'à 10 miniatures,
+    bouton rafraîchir, bouton étoile pour définir une miniature comme portrait. Clic sur une miniature
+    → photo pleine taille hébergée par Google.
+  - `src/lib/gphotos.ts` : extraction client-side des URLs `lh3.googleusercontent.com/pw/…`
+    (redimensionnables via `=wNNN`), cache localStorage 7 jours (`genealogor.gphotosCache`),
+    URL de relais configurable (`genealogor.gphotosProxy`).
+  - `netlify/functions/gphotos.mjs` : relais CORS générique restreint aux hôtes Google Photos
+    (la page d'album n'étant pas lisible côté navigateur). **Portable** : remplaçable par n'importe
+    quel proxy (Express/PHP/nginx) en changeant l'URL dans les Paramètres → pas de verrou Netlify.
+- `SettingsPanel.tsx` : section Google Photos avec champ URL du relais (vide = fonction Netlify par défaut).
+- Sérialiseurs GEDCOM 5.5.1 **et** 7.0 mis à jour pour écrire `_GPHOTOS` / `_PORTRAIT`.
+
+> ⚠️ L'API Photos Library de Google a été verrouillée (mars 2025) ; l'approche par lien partagé est la
+> seule durable. Elle est non officielle et peut casser si Google change le format de ses pages d'album.
+
+---
+
 ## [0.3.1] — 2026-06-03
 
 ### Ajouté — Démo cinématique

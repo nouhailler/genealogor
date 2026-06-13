@@ -6,6 +6,7 @@ import { serialize } from '@/lib/gedcom-serializer';
 import { usePrivacy, shouldMask } from '@/lib/privacy';
 import { useFavorites, useRecentlyViewed, clearFavorites, clearRecent, haptic } from '@/lib/favorites';
 import { search as ftSearch } from '@/lib/fulltext-search';
+import { gphotoUrl } from '@/lib/gphotos';
 import { Icon } from '@/components/ui-kit';
 import AdvancedSearch from '@/components/AdvancedSearch';
 import { type SearchFilter, EMPTY_FILTER, applyAdvancedFilter, exportCSV, exportGEDCOM } from '@/lib/advanced-filter';
@@ -591,16 +592,28 @@ export default function App() {
                     ${selectedId === p.id ? 'bg-[var(--accent-soft)] text-[var(--accent)]' : 'hover:bg-[var(--surface-hover)] text-[var(--ink)]'}
                   `}
                 >
-                  <div className={`text-sm font-medium leading-tight truncate ${masked ? 'is-private' : ''}`}>
-                    {isFav(p.id) && <span className="mr-1" style={{ color: 'var(--warn)' }}>★</span>}
-                    {p.name.display}
-                  </div>
-                  <div className="text-[11px] text-[var(--ink-faint)] font-mono mt-0.5 flex items-center gap-1.5">
-                    <span className={p.sex === 'M' ? 'text-[var(--sex-m)]' : p.sex === 'F' ? 'text-[var(--sex-f)]' : ''}>
-                      {p.sex === 'M' ? '♂' : p.sex === 'F' ? '♀' : '·'}
-                    </span>
-                    <span className={masked ? 'is-private' : ''}>{years.join('–')}</span>
-                    {p.birth?.place && <span className="truncate text-[var(--ink-faint)]">{p.birth.place.split(',')[0]}</span>}
+                  <div className="flex items-center gap-2.5">
+                    {p.portraitUrl && (
+                      <img
+                        src={gphotoUrl(p.portraitUrl, 64)}
+                        alt=""
+                        loading="lazy"
+                        className={`size-8 rounded-full object-cover border border-[var(--border)] shrink-0 ${masked ? 'is-private' : ''}`}
+                      />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className={`text-sm font-medium leading-tight truncate ${masked ? 'is-private' : ''}`}>
+                        {isFav(p.id) && <span className="mr-1" style={{ color: 'var(--warn)' }}>★</span>}
+                        {p.name.display}
+                      </div>
+                      <div className="text-[11px] text-[var(--ink-faint)] font-mono mt-0.5 flex items-center gap-1.5">
+                        <span className={p.sex === 'M' ? 'text-[var(--sex-m)]' : p.sex === 'F' ? 'text-[var(--sex-f)]' : ''}>
+                          {p.sex === 'M' ? '♂' : p.sex === 'F' ? '♀' : '·'}
+                        </span>
+                        <span className={masked ? 'is-private' : ''}>{years.join('–')}</span>
+                        {p.birth?.place && <span className="truncate text-[var(--ink-faint)]">{p.birth.place.split(',')[0]}</span>}
+                      </div>
+                    </div>
                   </div>
                 </button>
               );

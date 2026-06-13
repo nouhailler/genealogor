@@ -15,6 +15,7 @@ export * from './favorites';
 export * from './share';
 export * from './tips';
 export * from './demo-scripts';
+export * from './gphotos';
 export * from './family-book';
 export * from './attachment-store';
 export * from './sample-ged';
