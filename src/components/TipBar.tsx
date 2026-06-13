@@ -26,16 +26,16 @@ export default function TipBar({ tab, hidden, onHide, onStartDemo, onOpenHelp }:
   const btn = 'h-11 sm:h-6 px-2.5 sm:px-1.5 inline-flex items-center gap-1 rounded text-[11px] font-mono shrink-0 transition-colors text-[var(--ink-faint)] hover:text-[var(--ink)] hover:bg-[var(--surface-hover)]';
 
   return (
-    <div className="flex items-center gap-2 px-3 py-1 sm:py-1.5 border-b border-[var(--border)] bg-[var(--surface)] shrink-0">
-      <Icon.Bulb className="size-3.5 shrink-0" style={{ color: 'var(--warn)' }} />
+    <div className="flex items-start gap-2 px-3 py-1.5 border-b border-[var(--border)] bg-[var(--surface)] shrink-0">
+      <Icon.Bulb className="size-3.5 shrink-0 mt-0.5" style={{ color: 'var(--warn)' }} />
       <button
         onClick={next}
         title="Astuce suivante"
-        className="flex-1 min-w-0 text-left text-xs text-[var(--ink-muted)] leading-snug truncate hover:text-[var(--ink)]"
+        className="flex-1 min-w-0 text-left text-xs text-[var(--ink-muted)] leading-snug hover:text-[var(--ink)]"
       >
         {renderInlineMd(tips[idx])}
       </button>
-      <span className="text-[10px] font-mono text-[var(--ink-faint)] shrink-0 hidden sm:block">{idx + 1}/{tips.length}</span>
+      <span className="text-[10px] font-mono text-[var(--ink-faint)] shrink-0 mt-0.5 hidden sm:block">{idx + 1}/{tips.length}</span>
       <button onClick={next} className={btn} title="Astuce suivante">
         <Icon.ChevronRight className="size-3" />
       </button>
