@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '@/components/ui-kit';
 import { loadSettings, saveSettings, type Settings, type ProviderId, type ProviderSettings } from '@/lib/ai-client';
+import { getGPhotosProxy, setGPhotosProxy, DEFAULT_GPHOTOS_PROXY } from '@/lib/gphotos';
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -240,8 +241,10 @@ const PROVIDERS: { id: ProviderId; label: string; sublabel: string }[] = [
 export default function SettingsPanel({ onClose }: Props) {
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
   const [viewing, setViewing] = useState<ProviderId>(settings.provider || 'claude');
+  const [gphotosProxy, setGphotosProxyState] = useState<string>(() => getGPhotosProxy());
 
   useEffect(() => { saveSettings(settings); }, [settings]);
+  useEffect(() => { setGPhotosProxy(gphotosProxy); }, [gphotosProxy]);
 
   const updateProvider = (id: ProviderId, patch: Partial<ProviderSettings>) =>
     setSettings((s) => ({ ...s, [id]: { ...(s[id] || {}), ...patch } }));
@@ -323,6 +326,25 @@ export default function SettingsPanel({ onClose }: Props) {
                 Utiliser {PROVIDERS.find((p) => p.id === viewing)?.label}
               </button>
             )}
+          </div>
+
+          {/* Google Photos proxy */}
+          <div className="mt-5 pt-4 border-t border-[var(--border)] space-y-3">
+            <div className="flex items-center gap-2">
+              <Icon.Paperclip className="size-4 text-[var(--accent)]" />
+              <h4 className="text-sm font-medium text-[var(--ink)]">Google Photos</h4>
+            </div>
+            <p className="text-sm text-[var(--ink-muted)] leading-relaxed">
+              Pour rapatrier les miniatures d'un album partagé par lien, l'application passe par un petit
+              relais (les navigateurs ne peuvent pas lire la page d'album directement). Par défaut, une
+              <strong> fonction Netlify</strong> intégrée est utilisée. Pour héberger vous-même, indiquez ici
+              l'URL de votre propre relais (Express, PHP, nginx <code className="font-mono text-[var(--ink)]">proxy_pass</code>…).
+            </p>
+            <Field label="URL du relais" hint={`Laissez vide pour la valeur par défaut (${DEFAULT_GPHOTOS_PROXY}).`}>
+              <input type="text" value={gphotosProxy === DEFAULT_GPHOTOS_PROXY ? '' : gphotosProxy}
+                onChange={(e) => setGphotosProxyState(e.target.value.trim() || DEFAULT_GPHOTOS_PROXY)}
+                placeholder={DEFAULT_GPHOTOS_PROXY} className={INPUT_CLS} />
+            </Field>
           </div>
         </div>
 

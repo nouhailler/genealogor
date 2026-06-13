@@ -56,6 +56,11 @@ Framework-free TypeScript modules. All re-exported from `src/lib/index.ts`. Nota
 | `advanced-filter.ts` | `applyAdvancedFilter`, `exportCSV`, `exportGEDCOM` |
 | `historical-events.ts` | French historical events for TimelineView |
 | `attachment-store.ts` | IndexedDB attachment storage |
+| `gphotos.ts` | `fetchAlbumImages`, `gphotoUrl`, `getGPhotosProxy`/`setGPhotosProxy` — Google Photos shared-album thumbnails |
+
+### Google Photos (shared-album link)
+
+A profile can carry a Google Photos **share link** in the custom GEDCOM tag `_GPHOTOS` (parsed/serialized in `gedcom-parser.ts`/`gedcom-serializer.ts`; field `Individual.gphotosAlbum`). `GooglePhotosSection.tsx` (rendered in `ProfileView`) extracts up to 10 `lh3.googleusercontent.com/pw/…` thumbnail URLs from the album page client-side and lets the user pick one as the profile **portrait** (tag `_PORTRAIT`, field `portraitUrl`), shown in the profile header and as a list avatar. Album pages aren't readable cross-origin, so the fetch goes through a generic CORS relay — Netlify function `netlify/functions/gphotos.mjs` by default, but the URL is **configurable in Settings** (`genealogor.gphotosProxy`) so the app stays portable for self-hosting. Extraction is cached 7 days (`genealogor.gphotosCache`). The official Photos Library API was locked down in March 2025, so this link-based scrape is the only durable path; it's unofficial and may break if Google changes the album-page format.
 
 ### `src/components/views/` — one file per tab
 

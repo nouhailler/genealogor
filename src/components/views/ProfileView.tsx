@@ -8,6 +8,8 @@ import BusinessCard from '@/components/views/BusinessCard';
 import PresentationMode from '@/components/views/PresentationMode';
 import BiographyPanel from '@/components/views/BiographyPanel';
 import EditPersonModal from '@/components/views/EditPersonModal';
+import GooglePhotosSection from '@/components/GooglePhotosSection';
+import { gphotoUrl } from '@/lib/gphotos';
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -268,6 +270,22 @@ export default function ProfileView({ person, individuals, families, onSelect, o
       {/* Header */}
       <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-5 border-b border-[var(--border)] shrink-0">
         <div className="flex items-start justify-between gap-3">
+          {person.portraitUrl && (
+            <a
+              href={gphotoUrl(person.portraitUrl, 2048)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0"
+              title="Afficher le portrait (hébergé par Google Photos)"
+            >
+              <img
+                src={gphotoUrl(person.portraitUrl, 192)}
+                alt={`Portrait de ${person.name.display}`}
+                loading="lazy"
+                className={`size-16 sm:size-20 rounded-lg object-cover border border-[var(--border)] ${masked ? 'is-private' : ''}`}
+              />
+            </a>
+          )}
           <div className="min-w-0 flex-1">
             <div className="text-[10.5px] font-mono uppercase tracking-wider text-[var(--ink-faint)] mb-1 flex items-center gap-2">
               <span>{sexLabel(person.sex)} · <span className="text-[var(--ink-faint)]">{person.id}</span></span>
@@ -431,6 +449,9 @@ export default function ProfileView({ person, individuals, families, onSelect, o
             <AncestorTree person={person} individuals={individuals} families={families} onSelect={onSelect} />
           </div>
         </section>
+
+        {/* Google Photos */}
+        <GooglePhotosSection person={person} masked={masked} onEditPerson={onEditPerson} />
 
         {/* AI biography */}
         <BiographyPanel person={person} individuals={individuals} families={families} />

@@ -143,7 +143,13 @@ function parseIndividual(node: GedNode): Individual {
   const note = fullValue(findChild(node, 'NOTE'));
   const famc = findChildren(node, 'FAMC').map((n) => n.value);
   const fams = findChildren(node, 'FAMS').map((n) => n.value);
-  return { id, name, sex, birth, death, occupation, note, famc, fams };
+  const gphotosAlbum = fullValue(findChild(node, '_GPHOTOS'));
+  const portraitUrl = fullValue(findChild(node, '_PORTRAIT'));
+  return {
+    id, name, sex, birth, death, occupation, note, famc, fams,
+    ...(gphotosAlbum ? { gphotosAlbum } : {}),
+    ...(portraitUrl ? { portraitUrl } : {}),
+  };
 }
 
 function parseFamily(node: GedNode): Family {
