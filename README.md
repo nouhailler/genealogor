@@ -41,6 +41,40 @@ L'application s'installe sur l'écran d'accueil iOS/Android et fonctionne **hors
 
 ---
 
+## 📸 Captures d'écran
+
+> Données de démonstration : la famille Bertrand fictive (`/?dataset=demo`).
+
+| | |
+|:---:|:---:|
+| <img src="docs/screenshots/01-profile.png" alt="Vue Profil" width="420"><br>**👤 Profil** — vitaux, famille, arbre ascendant intégré | <img src="docs/screenshots/02-ancestors.png" alt="Éventail Sosa" width="420"><br>**🌲 Ascendants** — éventail Sosa interactif |
+| <img src="docs/screenshots/03-graph.png" alt="Graphe relationnel" width="420"><br>**🕸️ Graphe** — réseau relationnel d3-force | <img src="docs/screenshots/04-map.jpg" alt="Carte géographique" width="420"><br>**🗺️ Carte** — lieux géocodés (Leaflet / OSM) |
+| <img src="docs/screenshots/05-stats.png" alt="Statistiques" width="420"><br>**📊 Statistiques** — répartition, naissances & décès par décennie | <img src="docs/screenshots/06-timeline.png" alt="Frise chronologique" width="420"><br>**⏳ Frise** — chronologie avec contexte historique |
+| <img src="docs/screenshots/07-descendants.png" alt="Descendants Aboville" width="420"><br>**🔽 Descendants** — arbre repliable, numérotation d'Aboville | <img src="docs/screenshots/08-validation.png" alt="Qualité / complétude" width="420"><br>**✅ Qualité** — incohérences, complétude, doublons |
+| <img src="docs/screenshots/09-media.png" alt="Galerie de médias" width="420"><br>**🖼️ Médias** — galerie de photos & actes (IndexedDB) | <img src="docs/screenshots/10-ai.png" alt="Assistant IA" width="420"><br>**🤖 IA** — recherche NL, Wikipédia, récit, normalisation |
+
+<details>
+<summary>🌙 Thème sombre</summary>
+
+| | |
+|:---:|:---:|
+| <img src="docs/screenshots/01-profile-dark.png" alt="Profil (sombre)" width="420"> | <img src="docs/screenshots/03-graph-dark.png" alt="Graphe (sombre)" width="420"> |
+| <img src="docs/screenshots/05-stats-dark.png" alt="Statistiques (sombre)" width="420"> | <img src="docs/screenshots/06-timeline-dark.png" alt="Frise (sombre)" width="420"> |
+| <img src="docs/screenshots/07-descendants-dark.png" alt="Descendants (sombre)" width="420"> | <img src="docs/screenshots/08-validation-dark.png" alt="Qualité (sombre)" width="420"> |
+| <img src="docs/screenshots/09-media-dark.png" alt="Médias (sombre)" width="420"> | <img src="docs/screenshots/10-ai-dark.png" alt="IA (sombre)" width="420"> |
+
+</details>
+
+### 📱 Sur mobile
+
+L'app bascule en layout mobile (< 768 px) : liste plein écran, barre de navigation inférieure et feuille « Plus » pour les vues secondaires.
+
+| | | | |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/screenshots/m1-list.png" alt="Liste mobile" width="200"><br>**Liste** | <img src="docs/screenshots/m2-profile.png" alt="Profil mobile" width="200"><br>**Profil** | <img src="docs/screenshots/m3-ancestors.png" alt="Éventail mobile" width="200"><br>**Éventail** | <img src="docs/screenshots/m4-more.png" alt="Feuille Plus mobile" width="200"><br>**Feuille « Plus »** |
+
+---
+
 ## 🚀 Démarrage rapide
 
 ```bash
